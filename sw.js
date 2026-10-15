@@ -1,7 +1,7 @@
 // Service worker do Painel do Carro: deixa o app abrir mesmo sem internet.
 // Ao publicar uma versão nova do index.html, troque o número abaixo (v1 -> v2...)
 // para o celular baixar a atualização.
-const CACHE = 'painel-carro-v3';
+const CACHE = 'painel-carro-v4';
 const APP_FILES = [
   './',
   './index.html',
@@ -28,9 +28,6 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-
-  // A Telemetria (pasta telemetria/) tem o próprio service worker: não mexe nela aqui
-  if (url.origin === self.location.origin && url.pathname.includes('/telemetria/')) return;
 
   // Página do app: tenta a internet primeiro (pega atualizações), cai no cache se estiver offline
   if (req.mode === 'navigate') {
