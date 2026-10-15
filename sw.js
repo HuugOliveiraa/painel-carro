@@ -1,7 +1,7 @@
 // Service worker do Painel do Carro: deixa o app abrir mesmo sem internet.
 // Ao publicar uma versão nova do index.html, troque o número abaixo (v1 -> v2...)
 // para o celular baixar a atualização.
-const CACHE = 'painel-carro-v1';
+const CACHE = 'painel-carro-v2';
 const APP_FILES = [
   './',
   './index.html',
