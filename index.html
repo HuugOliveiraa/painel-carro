@@ -348,14 +348,6 @@ a.link{color:var(--teal);}
     <div id="vehicleManageList"></div>
     <button class="btn-ghost" onclick="openVehicleForm()">+ Adicionar veículo</button>
 
-    <div class="section-title">Telemetria</div>
-    <div class="settings-group">
-      <div class="settings-item" onclick="location.href='/telemetria-carro/'">
-        <div><div class="ttl">Telemetria das viagens</div><div class="sub">Velocidade, curvas, frenagens, forças G e trajeto usando os sensores do celular</div></div>
-        <span class="arrow">›</span>
-      </div>
-    </div>
-
     <div class="section-title">Dados</div>
     <div class="settings-group">
       <div class="settings-item" onclick="exportData()">
@@ -1956,19 +1948,8 @@ if(navigator.storage && navigator.storage.persist){ navigator.storage.persist().
   refreshInstallItem();
 })();
 // ao voltar para o app (ex: aberto de novo no dia seguinte), lança recorrentes vencidas e atualiza datas
-// recarrega do armazenamento (a Telemetria pode ter lançado km no hodômetro enquanto este app estava em segundo plano)
-async function reloadFromStorage(){
-  if(document.querySelector('.overlay.show')) return;
-  STATE.cars = {};
-  await loadAll();
-}
-window.addEventListener('storage', async e=>{
-  if(!e.key || !(e.key.startsWith('car:') || e.key==='cars_index')) return;
-  await reloadFromStorage(); renderAll();
-});
 document.addEventListener('visibilitychange', async ()=>{
   if(document.visibilityState!=='visible') return;
-  await reloadFromStorage();
   await processRecurring();
   renderAll();
 });

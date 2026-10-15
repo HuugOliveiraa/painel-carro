@@ -6,9 +6,6 @@ Funciona como app instalável (PWA), abre sem internet, e os dados ficam salvos 
 **Abrir / instalar:** https://huugoliveiraa.github.io/painel-carro/
 No Chrome do Android: ⋮ → *Instalar app*. No iPhone (Safari): Compartilhar → *Adicionar à Tela de Início*.
 
-**Telemetria das viagens:** app separado no repositório [telemetria-carro](https://github.com/HuugOliveiraa/telemetria-carro)
-(https://huugoliveiraa.github.io/telemetria-carro/). Atalho em Ajustes → Telemetria.
-
 ## Arquivos
 - `index.html`: o app completo
 - `manifest.json`: nome, cores e ícones do app instalado
