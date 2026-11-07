@@ -339,6 +339,55 @@ a.link{color:var(--teal);}
 .fipe-alert .t{font-size:13.5px; font-weight:600; color:var(--c);}
 .fipe-alert .d{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
 .fipe-alert .ar{color:var(--text-dim); font-size:18px;}
+
+/* ============ AVARIAS ============ */
+.av-chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin-bottom:10px; scrollbar-width:none;}
+.av-chips::-webkit-scrollbar{display:none;}
+.av-chips .chip{white-space:nowrap; flex-shrink:0; padding:7px 11px; font-size:12.5px;}
+.av-chips .chip .dt{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:-1px;}
+.av-stage{position:relative; background:var(--bg-el); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:10px;}
+.av-scroll{overflow:auto; max-height:62vh; -webkit-overflow-scrolling:touch;}
+.av-imgwrap{position:relative; margin:0 auto; background:#fff; line-height:0;}
+.av-imgwrap img{width:100%; display:block; -webkit-user-drag:none; user-select:none;}
+.av-dot{position:absolute; width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%; border:2px solid #fff; color:#fff; font:700 10px/16px 'Inter',sans-serif; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.45); cursor:pointer;}
+.av-dot.ghost{opacity:0.4; width:14px; height:14px; margin:-7px 0 0 -7px; font-size:0; border-width:1.5px;}
+.av-dot.done{opacity:0.55;}
+.av-dot.new{animation:avpop 0.25s ease-out;}
+@keyframes avpop{from{transform:scale(0.3);} to{transform:scale(1);}}
+.av-zoom{position:absolute; right:8px; bottom:8px; display:flex; gap:4px; z-index:3;}
+.av-zoom button{width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:rgba(33,34,39,0.92); color:var(--text); font-size:17px; cursor:pointer;}
+.av-3d{height:52vh; min-height:300px; position:relative; touch-action:none;}
+.av-3d canvas{display:block; width:100%; height:100%;}
+.av-3d .msg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; color:var(--text-dim); font-size:13px;}
+.av-hint{font-size:11.5px; color:var(--text-dim); margin:-4px 0 12px; line-height:1.5;}
+.av-legend{display:flex; flex-wrap:wrap; gap:6px 12px; font-size:11px; color:var(--text-dim); margin:-2px 0 14px;}
+.av-legend .dt{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px;}
+.av-tag{display:inline-block; font-size:10.5px; padding:2px 7px; border-radius:10px; border:1px solid var(--border); color:var(--text-dim); margin-left:6px; vertical-align:1px;}
+.av-tag.open{border-color:var(--yellow); color:var(--yellow);}
+.av-tag.done{border-color:var(--teal); color:var(--teal);}
+.av-num{width:24px; height:24px; border-radius:50%; color:#fff; font:700 11px/24px 'Inter',sans-serif; text-align:center; flex-shrink:0;}
+.av-back{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.av-back button{background:var(--bg-el-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:7px 11px; font-size:13px; cursor:pointer;}
+.av-back .t{flex:1; min-width:0;}
+.av-back .t b{display:block; font-size:15px;}
+.av-back .t span{font-size:11.5px; color:var(--text-dim);}
+.av-prompt{width:100%; min-height:150px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text-dim); font:12px/1.45 'Inter',sans-serif; padding:10px; resize:vertical;}
+.av-step{font-size:12px; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px; margin:16px 0 8px;}
+.av-sheet{position:relative; background:#fff; border-radius:8px; overflow:hidden; margin-bottom:10px; touch-action:none;}
+.av-sheet canvas{width:100%; display:block;}
+.av-slot{background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:8px;}
+.av-slot .hd{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;}
+.av-slot .hd b{font-size:13.5px;}
+.av-slot select{background:var(--bg-el); color:var(--text); border:1px solid var(--border); border-radius:7px; padding:6px; font-size:12.5px;}
+.av-slot .thumb{background:#fff; border-radius:6px; min-height:40px; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+.av-slot .thumb canvas{max-width:100%; max-height:150px; display:block;}
+.av-slot .row{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; align-items:center;}
+.av-slot .row button{background:var(--bg-el-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 10px; font-size:12px; cursor:pointer;}
+.av-slot .row .h{font-size:11px; color:var(--text-dim); flex-basis:100%;}
+#printExport .av-pdf-row{display:flex; gap:10px; margin:6px 0;}
+#printExport .av-pdf-row > div{flex:1; min-width:0;}
+#printExport .av-pdf-row img{width:100%; border:1px solid #bbb; border-radius:4px;}
+#printExport .av-pdf-lbl{font-size:10px; font-weight:600; color:#333; margin-bottom:3px;}
 </style>
 </head>
 <body>
@@ -391,6 +440,10 @@ a.link{color:var(--teal);}
 
   <div class="view" id="view-despesas">
     <div id="expList"></div>
+  </div>
+
+  <div class="view" id="view-avarias">
+    <div id="avBody"></div>
   </div>
 
   <div class="view" id="view-ajustes">
@@ -461,6 +514,10 @@ a.link{color:var(--teal);}
   <button class="navbtn" data-view="fipe">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4v16h18"/><path d="M7 8l4 4 3-3 5 6"/><path d="M19 11.5V15h-3.5"/></svg>
     FIPE
+  </button>
+  <button class="navbtn" data-view="avarias">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 16.5l1.6-4.6a2 2 0 0 1 1.9-1.4h10a2 2 0 0 1 1.9 1.4l1.6 4.6v2.5h-17z"/><circle cx="7.5" cy="19" r="1.4"/><circle cx="16.5" cy="19" r="1.4"/><path d="M12 3.5v3.5M12 8.8v.2"/></svg>
+    Avarias
   </button>
   <button class="navbtn" data-view="ajustes">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -674,22 +731,70 @@ a.link{color:var(--teal);}
   <div class="sheet">
     <button class="close" onclick="closeOverlay('ov-fipe-settings')">×</button>
     <h2>Ajustes da análise</h2>
-    <div class="section-title first">Comparação com investimento</div>
+    <div class="section-title first">Investimentos para comparar</div>
     <div class="field-row">
       <div class="field"><label>CDI (% ao ano)</label><input type="number" step="0.01" id="fs-cdi" inputmode="decimal"></div>
-      <div class="field"><label>% do CDI</label><input type="number" step="1" id="fs-pct" inputmode="numeric"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>IR sobre o rendimento (%)</label><input type="number" step="0.5" id="fs-ir" inputmode="decimal"></div>
       <div class="field" style="display:flex; align-items:flex-end"><button class="btn-ghost" style="margin:0; padding:11px" onclick="fetchCDI(true)">Buscar CDI atual</button></div>
     </div>
-    <div class="hint" id="fs-cdi-info"></div>
+    <div class="hint" id="fs-cdi-info" style="margin-top:-6px"></div>
+    <div id="fs-inv-list"></div>
+    <button class="btn-ghost" style="margin:0 0 12px" onclick="invAddRow()">+ Adicionar investimento</button>
+    <div class="field"><label>Usar nas contas do carro</label><div class="chip-row" id="fs-inv-ref" style="margin-bottom:0"></div></div>
+    <div class="hint">IR "tabela regressiva": 22,5% até 180 dias, 20% até 360, 17,5% até 720 e 15% acima. Use "alíquota fixa" quando a instituição informar uma só (ex.: Wise, 22,5%) e "isento" para a poupança.</div>
     <div class="section-title">Histórico da FIPE</div>
     <div class="chip-row" id="fs-months-chips"></div>
     <div class="hint">Cada mês de histórico é uma consulta à API (limite grátis: 500 por dia). Os meses já baixados ficam salvos no celular e não são consultados de novo.</div>
     <div class="field"><label>Token da API FIPE (opcional)</label><input type="text" id="fs-token" placeholder="Deixe vazio se não tiver" autocomplete="off"></div>
     <div class="hint">Com um token grátis do fipe.api.br o limite sobe para 1.000 consultas por dia.</div>
     <button class="btn-primary" onclick="saveFipeSettings()">Salvar ajustes</button>
+  </div>
+</div>
+
+
+<!-- MONTAR A FICHA (prompt + imagem + vistas) -->
+<div class="overlay" id="ov-av-setup">
+  <div class="sheet" style="max-height:94vh">
+    <button class="close" onclick="closeOverlay('ov-av-setup')">×</button>
+    <h2>Ficha de inspeção</h2>
+    <div id="avSetupBody"></div>
+  </div>
+</div>
+
+<!-- INSPEÇÃO (data, local) -->
+<div class="overlay" id="ov-av-insp">
+  <div class="sheet">
+    <button class="close" onclick="closeOverlay('ov-av-insp')">×</button>
+    <h2 id="aiTitle">Nova inspeção</h2>
+    <div class="field"><label>Data</label><input type="date" id="ai-date"></div>
+    <div class="field"><label>Onde / motivo</label><div class="chip-row" id="ai-place-chips" style="margin-bottom:0"></div></div>
+    <div class="field"><label>Nome do local (opcional)</label><input type="text" id="ai-name" placeholder="Ex.: Concessionária, Estacionamento do shopping..."></div>
+    <div class="field"><label>Observações (opcional)</label><textarea id="ai-note"></textarea></div>
+    <button class="btn-primary" onclick="saveAvInsp()">Salvar</button>
+    <button class="btn-secondary" id="ai-delete" style="display:none" onclick="deleteAvInsp()">Excluir inspeção</button>
+  </div>
+</div>
+
+<!-- AVARIA -->
+<div class="overlay" id="ov-av-mark">
+  <div class="sheet">
+    <button class="close" onclick="closeOverlay('ov-av-mark')">×</button>
+    <h2 id="amTitle">Avaria</h2>
+    <div class="hint" id="amInfo" style="margin-top:-8px"></div>
+    <div class="field"><label>Tipo</label><div class="chip-row" id="am-type-chips" style="margin-bottom:0"></div></div>
+    <div class="field"><label>Gravidade</label><div class="chip-row" id="am-sev-chips" style="margin-bottom:0"></div></div>
+    <div class="field"><label>Descrição (opcional)</label><textarea id="am-desc" placeholder="Ex.: risco superficial perto da maçaneta"></textarea></div>
+    <div class="field"><label>Custo do reparo (R$)</label><input type="number" step="0.01" id="am-cost" inputmode="decimal" placeholder="Orçamento ou valor pago"></div>
+    <div class="field"><label>Situação</label><div class="chip-row" id="am-status-chips" style="margin-bottom:0"></div></div>
+    <div id="am-repair" style="display:none">
+      <div class="field"><label>Data do reparo</label><input type="date" id="am-rdate"></div>
+      <div class="toggle-row" id="am-maint-row">
+        <span class="lbl">Lançar o custo em Manutenção</span>
+        <div class="switch on" id="am-maint" onclick="toggleSwitch(this)"><div class="knob"></div></div>
+      </div>
+      <div class="hint" id="am-maint-info" style="margin-top:6px"></div>
+    </div>
+    <button class="btn-primary" onclick="saveAvMark()">Salvar</button>
+    <button class="btn-secondary" onclick="deleteAvMark()">Excluir avaria</button>
   </div>
 </div>
 
@@ -1460,7 +1565,7 @@ function renderAjustesView(){
 
 /* ============ NAVEGAÇÃO ============ */
 function renderAll(){
-  renderHeader(); renderPainel(); renderFuelView(); renderMaintView(); renderExpView(); renderAjustesView(); renderFipeView();
+  renderHeader(); renderPainel(); renderFuelView(); renderMaintView(); renderExpView(); renderAjustesView(); renderFipeView(); renderAvarias();
 }
 document.querySelectorAll('.navbtn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -1478,6 +1583,7 @@ document.getElementById('fabBtn').addEventListener('click', ()=>{
   else if(active==='manutencao') openMaintForm();
   else if(active==='despesas') openExpForm();
   else if(active==='fipe') openFipeForm('watch');
+  else if(active==='avarias') openAvInspForm();
 });
 
 /* ============ OVERLAYS ============ */
@@ -1570,6 +1676,7 @@ async function deleteVehicleConfirm(){
   delete STATE.cars[id];
   await dbSet('cars_index', {ids:Object.keys(STATE.cars)});
   try{ localStorage.removeItem('car:'+id); }catch(e){}
+  avIdb('del', 'ficha:'+id).catch(()=>{}); delete AV.imgs[id];
   if(STATE.currentCarId===id){
     STATE.currentCarId = Object.keys(STATE.cars)[0] || null;
     STATE.settings.selectedCarId = STATE.currentCarId;
@@ -1899,8 +2006,9 @@ async function bumpBackupCounter(){
   await persistSettings();
   renderBackupBanner();
 }
-function exportData(){
-  const payload = { exportedAt: new Date().toISOString(), settings: STATE.settings, cars: STATE.cars, fipe: {watch: FIPE.watch, settings: FIPE.settings} };
+async function exportData(){
+  const fichaImgs = await avExportImgs();
+  const payload = { exportedAt: new Date().toISOString(), settings: STATE.settings, cars: STATE.cars, fipe: {watch: FIPE.watch, settings: FIPE.settings}, fichaImgs };
   const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2033,6 +2141,7 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
       await persistCar(id);
     }
     await persistIndex();
+    if(data.fichaImgs) await avImportImgs(data.fichaImgs);
     if(data.fipe){
       (data.fipe.watch||[]).forEach(w=>{ const i = FIPE.watch.findIndex(x=>x.id===w.id); if(i>-1) FIPE.watch[i] = w; else FIPE.watch.push(w); });
       await fipeSaveWatch();
@@ -2325,10 +2434,44 @@ function fipeAnalyze(spec){
   const span = last.k-first.k;
   return {all, win, last, first, span, chg1:chg(1), chg3:chg(3), chg6:chg(6), chg12:chg(12), r12, r3, rProj, monthly, proj};
 }
-function cdiMonthlyNet(){
-  const s = FIPE.settings;
-  const a = (Number(s.cdi)||0)/100 * (Number(s.cdiPct)||0)/100;
-  return (Math.pow(1+a, 1/12)-1) * (1-(Number(s.ir)||0)/100);
+/* --- investimentos para comparar com o carro --- */
+// Padrão: taxas informadas pelo Hugo em 07/11/2026 (editáveis em Ajustes da análise)
+const INV_DEFAULT = [
+  {id:'cdi', name:'CDI (referência)', kind:'cdi', val:100, ir:'regressivo'},
+  {id:'picpay', name:'PicPay (saldo)', kind:'cdi', val:102, ir:'regressivo'},
+  {id:'wise', name:'Wise (saldo em reais)', kind:'fixa', val:9.46, ir:'fixo', irRate:22.5},
+  {id:'poup', name:'Santander (poupança)', kind:'fixa', val:8.35, ir:'isento'}
+];
+const INV_COLORS = ['var(--teal)', '#7fc47f', 'var(--blue)', 'var(--yellow)', '#c47fb8', '#8a7fd0', '#e0866b', '#9aa3ad'];
+function invList(){ return (FIPE.settings.invest && FIPE.settings.invest.length) ? FIPE.settings.invest : INV_DEFAULT; }
+function invGross(inv){ return inv.kind==='cdi' ? (Number(FIPE.settings.cdi)||0)*(Number(inv.val)||0)/100 : (Number(inv.val)||0); }   // % ao ano, bruto
+function invIR(inv, n){
+  // alíquota de IR para resgatar depois de n meses
+  if(inv.ir==='isento') return 0;
+  if(inv.ir==='fixo') return Number(inv.irRate)||0;
+  const d = n*30.44;   // tabela regressiva da renda fixa
+  return d<=180 ? 22.5 : d<=360 ? 20 : d<=720 ? 17.5 : 15;
+}
+function invNet(inv, n){ return (Math.pow(1+invGross(inv)/100, n/12) - 1) * (1 - invIR(inv, n)/100); }   // rendimento líquido no período (fração)
+function invRef(){
+  // investimento usado nas contas do carro: o escolhido nos ajustes ou o de maior rendimento líquido em 12 meses
+  const L = invList(), id = FIPE.settings.investRef;
+  return L.find(x=>x.id===id) || L.slice().sort((a,b)=>invNet(b,12)-invNet(a,12))[0];
+}
+function invMonthly(inv){ return Math.pow(1+invNet(inv,12), 1/12) - 1; }   // equivalente mensal líquido (base 12 meses)
+function invColor(inv){ const i = invList().indexOf(inv); return INV_COLORS[(i<0?0:i) % INV_COLORS.length]; }
+function fmtPct2(x){ return (x*100).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2})+'%'; }
+function investCompareHTML(P){
+  const n = FIPE.invH || 12, ref = invRef();
+  const L = invList().map(inv=>({inv, net:invNet(inv,n), ir:invIR(inv,n)})).sort((a,b)=>b.net-a.net);
+  const max = Math.max(...L.map(x=>x.net), 0.0001);
+  return `<div class="chip-row" style="margin-bottom:10px">${[3,6,12,24].map(h=>`<div class="chip ${n===h?'active':''}" onclick="FIPE.invH=${h}; renderFipeView()">${h} meses</div>`).join('')}</div>
+    <div class="cmp-box">${L.map((x,i)=>`<div class="cmp-row" style="cursor:default">
+      <div class="top"><span class="n">${escapeHtml(x.inv.name)}${x.inv===ref?' <span class="av-tag open" style="margin-left:4px">usado nas contas</span>':''}</span><span class="r" style="color:${i===0?'var(--teal)':'var(--text)'}">${fmtPct2(x.net)}</span></div>
+      <div class="s">bruto ${fmtPct2(invGross(x.inv)/100)} a.a.${x.inv.kind==='cdi'?' ('+Number(x.inv.val).toLocaleString('pt-BR')+'% do CDI)':''} · IR ${x.ir ? x.ir.toLocaleString('pt-BR')+'%' : 'isento'} · <b style="color:var(--text)">+${fmtMoneyInt(P*x.net)}</b> sobre ${fmtMoneyInt(P)}</div>
+      <div class="bar"><span style="width:${(Math.max(0,x.net)/max*100).toFixed(1)}%; background:${invColor(x.inv)}"></span></div>
+    </div>`).join('')}</div>
+    <div class="hint">Rendimento líquido em ${n} meses, já descontado o IR (tabela regressiva: 22,5% até 180 dias, 20% até 360, 17,5% até 720 e 15% acima; poupança isenta). Taxas de saldo e poupança mudam com o tempo: atualize em Ajustes da análise. Não é recomendação de investimento.</div>`;
 }
 function ownContext(car){
   const f = car.info.fipe;
@@ -2348,10 +2491,10 @@ function ownContext(car){
   };
 }
 function waitCosts(A, ctx){
-  const P = A.last.price, i = cdiMonthlyNet(), r = A.rProj||0, fix = (ctx && ctx.fixedMonthly) || 0;
+  const P = A.last.price, ref = invRef(), r = A.rProj||0, fix = (ctx && ctx.fixedMonthly) || 0;
   return [1,3,6,12].map(n=>{
     const dep = Math.max(0, P - P*Math.pow(1+r, n));
-    const opp = P*(Math.pow(1+i, n)-1);
+    const opp = P*invNet(ref, n);
     const fx = fix*n;
     return {n, dep, opp, fix:fx, total:dep+opp+fx};
   });
@@ -2359,7 +2502,7 @@ function waitCosts(A, ctx){
 function fipeRecs(car, A, ctx){
   const recs = [];
   const P = A.last.price;
-  const i = cdiMonthlyNet();
+  const ref = invRef(), i = invMonthly(ref);
   const lastM = A.monthly[A.monthly.length-1];
   if(lastM && lastM.pct<=-0.03){
     recs.push({lv:'red', trend:true, t:`Queda forte em ${kLabel(lastM.k)}: ${fmtPct(lastM.pct)}`,
@@ -2384,10 +2527,10 @@ function fipeRecs(car, A, ctx){
     const total = Math.max(0,dep) + opp + fix;
     if(dep > opp){
       recs.push({lv:'yellow', t:'O carro perde mais do que o dinheiro renderia',
-        d:`Desvaloriza cerca de ${fmtMoneyInt(dep)}/mês; o valor dele aplicado a ${Number(FIPE.settings.cdiPct)}% do CDI renderia ${fmtMoneyInt(opp)}/mês líquido. Somando ${ctx?'manutenção e despesas':'tudo'}, manter custa ~${fmtMoneyInt(total)}/mês.`});
+        d:`Desvaloriza cerca de ${fmtMoneyInt(dep)}/mês; o valor dele aplicado em ${escapeHtml(ref.name)} renderia ~${fmtMoneyInt(opp)}/mês líquido. Somando ${ctx?'manutenção e despesas':'tudo'}, manter custa ~${fmtMoneyInt(total)}/mês.`});
     } else {
       recs.push({lv:'blue', t:'O maior custo de manter é o rendimento perdido',
-        d:`Desvaloriza ~${fmtMoneyInt(Math.max(0,dep))}/mês, enquanto o valor aplicado renderia ~${fmtMoneyInt(opp)}/mês. Custo total de manter: ~${fmtMoneyInt(total)}/mês.`});
+        d:`Desvaloriza ~${fmtMoneyInt(Math.max(0,dep))}/mês, enquanto o valor aplicado em ${escapeHtml(ref.name)} renderia ~${fmtMoneyInt(opp)}/mês líquido. Custo total de manter: ~${fmtMoneyInt(total)}/mês.`});
     }
   }
   if(ctx && ctx.purchasePrice && ctx.purchaseK!=null){
@@ -2530,15 +2673,16 @@ function historyChart(id, A, opts){
   return fLineChart(id, {series, hlines, markers, legend, note:'Toque e arraste no gráfico para ver cada mês.'});
 }
 function cdiChart(id, A){
-  const P = A.last.price, i = cdiMonthlyNet();
   if(A.rProj==null) return '';
+  const P = A.last.price, L = invList();
   const car = Array.from({length:13}, (_,n)=>({k:A.last.k+n, v:P*Math.pow(1+A.rProj, n)}));
-  const inv = Array.from({length:13}, (_,n)=>({k:A.last.k+n, v:P*Math.pow(1+i, n)}));
-  const gap = inv[12].v - car[12].v;
-  return fLineChart(id, {h:160,
-    series:[{name:'Vendido e aplicado', color:'var(--teal)', pts:inv}, {name:'Carro (projeção)', color:'var(--accent)', dash:true, pts:car}],
-    legend:[{label:`Vendido e aplicado (${(cdiMonthlyNet()*100).toLocaleString('pt-BR',{maximumFractionDigits:2})}%/mês líq.)`, color:'var(--teal)'}, {label:'Carro (projeção FIPE)', color:'var(--accent)', dash:true}],
-    note:`Em 12 meses a diferença estimada é de <b style="color:var(--text)">${fmtMoneyInt(gap)}</b> a favor de vender e aplicar, sem contar manutenção e despesas. Considera só o dinheiro: se você vai precisar de outro carro, compare com os carros que acompanha.`});
+  const series = L.map(inv=>({name:inv.name, color:invColor(inv), width:1.8, pts:Array.from({length:13}, (_,n)=>({k:A.last.k+n, v:P*(1+invNet(inv, n))}))}));
+  series.push({name:'Carro (projeção)', color:'var(--accent)', dash:true, width:2.2, pts:car});
+  const best = L.slice().sort((a,b)=>invNet(b,12)-invNet(a,12))[0], worst = L.slice().sort((a,b)=>invNet(a,12)-invNet(b,12))[0];
+  const gapB = P*(1+invNet(best,12)) - car[12].v, gapW = P*(1+invNet(worst,12)) - car[12].v;
+  return fLineChart(id, {h:180, series,
+    legend: L.map(inv=>({label:`${inv.name} (${fmtPct2(invNet(inv,12))} líq. em 12m)`, color:invColor(inv)})).concat([{label:'Carro (projeção FIPE)', color:'var(--accent)', dash:true}]),
+    note:`Em 12 meses, vender e aplicar fica ${fmtMoneyInt(gapB)} à frente de ficar com o carro no melhor caso (${escapeHtml(best.name)}) e ${fmtMoneyInt(gapW)} no pior (${escapeHtml(worst.name)}), sem contar manutenção e despesas. Os degraus nas linhas são o IR caindo com o prazo. Considera só o dinheiro: se você vai precisar de outro carro, compare com os carros que acompanha.`});
 }
 function waitCostHTML(A, ctx){
   const rows = waitCosts(A, ctx);
@@ -2634,7 +2778,8 @@ function renderFipeOwn(){
   const bars = fBarsChart(A.monthly);
   if(bars) h += `<div class="section-title">Variação mês a mês</div>` + bars;
   if(A.rProj!=null){
-    h += `<div class="section-title">Vender agora ou esperar?</div><div class="hint">Quanto custa, em reais, adiar a venda (comparado a vender hoje pela FIPE e aplicar o dinheiro).</div>` + waitCostHTML(A, ctx);
+    h += `<div class="section-title">Vender agora ou esperar?</div><div class="hint">Quanto custa, em reais, adiar a venda (comparado a vender hoje pela FIPE e aplicar em ${escapeHtml(invRef().name)}).</div>` + waitCostHTML(A, ctx);
+    h += `<div class="section-title">Onde aplicar o valor do carro</div>` + investCompareHTML(A.last.price);
     h += `<div class="section-title">Vender e aplicar × ficar com o carro</div>` + cdiChart('own-cdi', A);
   }
   const cmp = compareHTML(car, A);
@@ -2658,10 +2803,10 @@ function renderFipeWatch(){
 }
 function renderFipeSettingsBox(){
   const s = FIPE.settings;
-  const i = cdiMonthlyNet();
+  const ref = invRef();
   const synced = FIPE.lastSync ? `Última atualização: hoje às ${new Date(FIPE.lastSync).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}` : (FIPE.offline ? 'Sem internet no momento' : 'Busca só os meses que ainda faltam');
   document.getElementById('fipeSettingsBox').innerHTML = `
-    <div class="settings-item" onclick="openFipeSettings()"><div><div class="ttl">Comparação com o CDI</div><div class="sub">${Number(s.cdi).toLocaleString('pt-BR')}% a.a. · ${s.cdiPct}% do CDI · IR ${Number(s.ir).toLocaleString('pt-BR')}% → ${(i*100).toLocaleString('pt-BR',{maximumFractionDigits:2})}%/mês líquido</div></div><span class="arrow">›</span></div>
+    <div class="settings-item" onclick="openFipeSettings()"><div><div class="ttl">Investimentos para comparar</div><div class="sub">${invList().length} opções · CDI ${Number(s.cdi).toLocaleString('pt-BR')}% a.a. · nas contas: ${escapeHtml(ref.name)} (${fmtPct2(invNet(ref,12))} líq. em 12 meses)</div></div><span class="arrow">›</span></div>
     <div class="settings-item" onclick="openFipeSettings()"><div><div class="ttl">Período do histórico</div><div class="sub">${s.months} meses${s.token?' · com token da API':''}</div></div><span class="arrow">›</span></div>
     <div class="settings-item" onclick="fipeSync(true); showToast('Atualizando dados da FIPE…')"><div><div class="ttl">Atualizar dados da FIPE</div><div class="sub">${synced}</div></div><span class="arrow">⟳</span></div>
     <div class="settings-item" onclick="fipeTestConn()"><div><div class="ttl">Testar conexão com a FIPE</div><div class="sub" id="fipeTestSub">${FIPE.lastError ? 'Último erro: '+escapeHtml(FIPE.lastError) : 'Mostra o motivo exato se algo falhar'}</div></div><span class="arrow">›</span></div>`;
@@ -2885,8 +3030,8 @@ async function deleteFipeForm(){
 function openFipeSettings(){
   const s = FIPE.settings;
   document.getElementById('fs-cdi').value = s.cdi;
-  document.getElementById('fs-pct').value = s.cdiPct;
-  document.getElementById('fs-ir').value = s.ir;
+  FS.inv = JSON.parse(JSON.stringify(invList())); FS.ref = s.investRef || null;
+  renderInvRows();
   document.getElementById('fs-token').value = s.token||'';
   document.getElementById('fs-cdi-info').textContent = s.cdiDate ? `CDI do Banco Central em ${s.cdiDate}.` : 'Valor padrão: 13,65% a.a. (Selic em 13,75% desde 04/11/2026). Toque em "Buscar CDI atual" para pegar o número oficial.';
   FP.months = s.months;
@@ -2895,10 +3040,13 @@ function openFipeSettings(){
 }
 async function saveFipeSettings(){
   const s = FIPE.settings;
-  const cdi = Number(document.getElementById('fs-cdi').value), pct = Number(document.getElementById('fs-pct').value), ir = Number(document.getElementById('fs-ir').value);
+  const cdi = Number(document.getElementById('fs-cdi').value);
   if(cdi>0) s.cdi = cdi;
-  if(pct>0) s.cdiPct = pct;
-  if(ir>=0 && ir<100) s.ir = ir;
+  const inv = FS.inv.filter(x=>x.name.trim() && Number(x.val)>0);
+  if(!inv.length){ showToast('Deixe pelo menos um investimento com nome e taxa.'); return; }
+  if(inv.some(x=>x.ir==='fixo' && !(Number(x.irRate)>=0 && Number(x.irRate)<100))){ showToast('Confira a alíquota fixa de IR.'); return; }
+  s.invest = inv.map(x=>({...x, name:x.name.trim(), val:Number(x.val), irRate: x.ir==='fixo' ? Number(x.irRate) : undefined}));
+  s.investRef = FS.ref && s.invest.some(x=>x.id===FS.ref) ? FS.ref : null;
   s.token = document.getElementById('fs-token').value.trim();
   const moreMonths = FP.months > s.months;
   s.months = FP.months || s.months;
@@ -2908,6 +3056,43 @@ async function saveFipeSettings(){
   showToast('Ajustes salvos.');
   if(moreMonths) fipeSync();
 }
+/* editor de investimentos nos ajustes */
+const FS = {inv:[], ref:null};
+function renderInvRows(){
+  const box = document.getElementById('fs-inv-list');
+  box.innerHTML = FS.inv.map((x,i)=>`<div class="av-slot">
+    <div class="hd"><input type="text" value="${escapeHtml(x.name)}" placeholder="Nome (ex.: Nubank, CDB banco X)" oninput="FS.inv[${i}].name=this.value; renderInvRef()" style="flex:1; background:var(--bg-el); border:1px solid var(--border); border-radius:7px; color:var(--text); padding:8px; font-size:13.5px; font-weight:600">
+      <button onclick="FS.inv.splice(${i},1); renderInvRows()" style="background:none; border:none; color:var(--red); font-size:20px; cursor:pointer">×</button></div>
+    <div class="chip-row" style="margin-bottom:8px" id="fs-kind-${i}"></div>
+    <div class="field-row">
+      <div class="field" style="margin-bottom:8px"><label>${x.kind==='cdi' ? '% do CDI' : 'Rendimento bruto (% ao ano)'}</label><input type="number" step="0.01" inputmode="decimal" value="${x.val}" oninput="FS.inv[${i}].val=this.value; invRowInfo(${i})"></div>
+      ${x.ir==='fixo' ? `<div class="field" style="margin-bottom:8px"><label>Alíquota de IR (%)</label><input type="number" step="0.5" inputmode="decimal" value="${x.irRate!=null?x.irRate:''}" oninput="FS.inv[${i}].irRate=this.value; invRowInfo(${i})"></div>` : ''}
+    </div>
+    <div class="chip-row" style="margin-bottom:6px" id="fs-ir-${i}"></div>
+    <div class="hint" style="margin:0" id="fs-inv-info-${i}"></div>
+  </div>`).join('');
+  const KIND = {'% do CDI':'cdi', 'Taxa fixa ao ano':'fixa'}, IRS = {'Tabela regressiva':'regressivo', 'Alíquota fixa':'fixo', 'Isento':'isento'};
+  FS.inv.forEach((x,i)=>{
+    buildChips('fs-kind-'+i, Object.keys(KIND), Object.keys(KIND).find(k=>KIND[k]===x.kind), v=>{ x.kind = KIND[v]; renderInvRows(); });
+    buildChips('fs-ir-'+i, Object.keys(IRS), Object.keys(IRS).find(k=>IRS[k]===x.ir), v=>{ x.ir = IRS[v]; if(x.ir==='fixo' && x.irRate==null) x.irRate = 22.5; renderInvRows(); });
+    invRowInfo(i);
+  });
+  renderInvRef();
+}
+function invRowInfo(i){
+  const el = document.getElementById('fs-inv-info-'+i); if(!el) return;
+  const x = FS.inv[i];
+  const cdiNow = Number(document.getElementById('fs-cdi').value) || FIPE.settings.cdi;
+  const gross = x.kind==='cdi' ? cdiNow*(Number(x.val)||0)/100 : (Number(x.val)||0);
+  const ir = x.ir==='isento' ? 0 : x.ir==='fixo' ? (Number(x.irRate)||0) : 17.5;
+  el.textContent = `Bruto ${gross.toLocaleString('pt-BR',{maximumFractionDigits:2})}% a.a. → líquido em 12 meses ≈ ${(gross*(1-ir/100)).toLocaleString('pt-BR',{maximumFractionDigits:2})}%`;
+}
+function renderInvRef(){
+  const names = ['Melhor rendimento'].concat(FS.inv.map(x=>x.name || 'sem nome'));
+  const cur = FS.ref ? (FS.inv.find(x=>x.id===FS.ref)||{}).name : 'Melhor rendimento';
+  buildChips('fs-inv-ref', names, cur || 'Melhor rendimento', v=>{ FS.ref = v==='Melhor rendimento' ? null : (FS.inv.find(x=>x.name===v)||{}).id || null; });
+}
+function invAddRow(){ FS.inv.push({id:uid(), name:'', kind:'cdi', val:100, ir:'regressivo'}); renderInvRows(); }
 async function fetchCDI(manual){
   // série 4389 do Banco Central: CDI anualizado (base 252)
   try{
@@ -2920,6 +3105,7 @@ async function fetchCDI(manual){
     await fipeSaveSettings();
     if(manual){
       document.getElementById('fs-cdi').value = v;
+      FS.inv.forEach((x,i)=>invRowInfo(i));
       document.getElementById('fs-cdi-info').textContent = `CDI do Banco Central em ${d[0].data}.`;
       showToast(`CDI atualizado: ${v.toLocaleString('pt-BR')}% a.a.`);
     }
@@ -2946,6 +3132,1090 @@ async function fipeTestConn(){
   }
   sub.textContent = out.join(' · ');
 }
+
+
+/* ============ AVARIAS: FICHA DE INSPEÇÃO ============ */
+// A pessoa gera uma prancha com 5 vistas numa IA de imagem (prompt pronto abaixo), envia a imagem,
+// o app separa as vistas, monta um 3D aproximado a partir das silhuetas e permite marcar avarias
+// em inspeções datadas. Imagens ficam no IndexedDB (podem passar de 1 MB); marcações ficam no carro.
+const AV_VIEWS = [
+  {k:'front', l:'Frente', s:'Frente', hint:'Carro visto de frente.'},
+  {k:'rear', l:'Traseira', s:'Traseira', hint:'Carro visto por trás.'},
+  {k:'left', l:'Lateral esquerda', s:'Lat. esq.', hint:'A frente do carro deve apontar para a ESQUERDA.'},
+  {k:'right', l:'Lateral direita', s:'Lat. dir.', hint:'A frente do carro deve apontar para a DIREITA.'},
+  {k:'top', l:'Teto', s:'Teto', hint:'Depois de girado, a frente do carro deve apontar para CIMA (o app gira sozinho; confira).'}
+];
+const AV_VIEW = Object.fromEntries(AV_VIEWS.map(v=>[v.k, v]));
+const AV_TYPES = [
+  {t:'Amassado', c:'#e53935'}, {t:'Risco / arranhão', c:'#1e88e5'}, {t:'Marca', c:'#f5b400'},
+  {t:'Lasca de pintura', c:'#9c4dcc'}, {t:'Mancha', c:'#2e9d55'}, {t:'Trinca / quebra', c:'#ef7d22'}, {t:'Outro', c:'#7d8a9a'}
+];
+const AV_SEV = ['Leve','Moderada','Grave'];
+const AV_PLACES = ['Oficina','Concessionária','Estacionamento','Lava-rápido','Compra','Venda','Rotina','Outro'];
+function avColor(type){ return (AV_TYPES.find(x=>x.t===type)||AV_TYPES[6]).c; }
+
+const AV = {mode:'overview', inspId:null, view:'3d', zoom:1, tool:AV_TYPES[0].t, sev:'Leve', showPrev:true, filter:'abertas', imgs:{}, lastAdded:null};
+
+/* --- imagens no IndexedDB --- */
+let _avDB = null;
+function avDB(){
+  if(!_avDB) _avDB = new Promise((res, rej)=>{
+    const r = indexedDB.open('painel-carro-imgs', 1);
+    r.onupgradeneeded = ()=>r.result.createObjectStore('imgs');
+    r.onsuccess = ()=>res(r.result); r.onerror = ()=>rej(r.error);
+  });
+  return _avDB;
+}
+async function avIdb(mode, key, val){
+  const db = await avDB();
+  return new Promise((res, rej)=>{
+    const tx = db.transaction('imgs', mode==='get' ? 'readonly' : 'readwrite');
+    const st = tx.objectStore('imgs');
+    const q = mode==='get' ? st.get(key) : mode==='put' ? st.put(val, key) : st.delete(key);
+    q.onsuccess = ()=>res(q.result||null); q.onerror = ()=>rej(q.error);
+  });
+}
+async function avLoadImgs(carId){
+  if(AV.imgs[carId]) return AV.imgs[carId];
+  const rec = await avIdb('get', 'ficha:'+carId);
+  if(!rec) return null;
+  const views = {};
+  await Promise.all(AV_VIEWS.map(v=>new Promise(res=>{
+    if(!rec.views[v.k]){ res(); return; }
+    const im = new Image(); im.onload = ()=>{ views[v.k] = im; res(); }; im.onerror = ()=>res(); im.src = rec.views[v.k];
+  })));
+  AV.imgs[carId] = {rec, views};
+  return AV.imgs[carId];
+}
+
+/* --- prompt --- */
+function avPrompt(model, year, color){
+  return `Crie uma prancha técnica automotiva profissional para inspeção visual e registro de avarias de um veículo.
+
+VEÍCULO:
+* Modelo: ${model || '[INSERIR MODELO DO CARRO]'}
+* Ano/modelo: ${year || '[INSERIR ANO]'}
+* Cor: ${color || '[INSERIR COR, SE DESEJADO]'}
+
+OBJETIVO:
+A imagem será utilizada como ficha de inspeção para marcar manualmente riscos, arranhões, amassados, manchas, lascas de pintura, danos e outras imperfeições existentes na lataria do veículo.
+
+COMPOSIÇÃO OBRIGATÓRIA:
+Apresente exatamente cinco vistas independentes do mesmo veículo, organizadas em uma única prancha técnica:
+1. VISTA FRONTAL: veículo observado diretamente de frente, mostrando para-choque, capô, faróis, grade e demais elementos frontais.
+2. VISTA TRASEIRA: veículo observado diretamente por trás, mostrando tampa do porta-malas, lanternas, para-choque e demais elementos traseiros.
+3. LATERAL ESQUERDA: veículo observado perpendicularmente pelo lado esquerdo, mostrando toda a extensão da carroceria, com a frente do carro apontando para a ESQUERDA da imagem.
+4. LATERAL DIREITA: veículo observado perpendicularmente pelo lado direito, mostrando toda a extensão da carroceria, com a frente do carro apontando para a DIREITA da imagem.
+5. VISTA SUPERIOR (TETO): veículo observado diretamente de cima, em projeção ortográfica, mostrando teto, para-brisas, vidros, capô e porta-malas, desenhado na horizontal com a frente do carro apontando para a ESQUERDA da imagem.
+
+FIDELIDADE AO VEÍCULO:
+* Reproduza fielmente o design, as proporções e os elementos característicos do modelo e ano informados.
+* Todas as cinco vistas devem representar exatamente o mesmo veículo.
+* Respeite o formato original da carroceria, portas, retrovisores, rodas, para-choques, faróis, lanternas e demais componentes.
+* Não invente acessórios, modificações ou elementos que não pertençam ao veículo.
+
+ESTILO VISUAL:
+* Desenho técnico automotivo de alta precisão.
+* Projeções ortográficas, sem perspectiva ou distorção de lente.
+* Aparência semelhante a uma prancha de engenharia ou manual de inspeção veicular.
+* Fundo branco puro.
+* Traços finos, limpos e bem definidos.
+* Veículo em escala visual consistente entre as vistas.
+* Pintura representada de maneira neutra e uniforme, sem reflexos exagerados.
+* Iluminação homogênea e sem sombras fortes.
+
+ORGANIZAÇÃO:
+* Dispor as cinco vistas de maneira organizada, com espaçamento adequado entre elas.
+* Identificar cada vista com os títulos: FRENTE, TRASEIRA, LATERAL ESQUERDA, LATERAL DIREITA e TETO.
+* Deixar um espaço em branco entre cada vista e o seu título; o título não deve encostar no desenho.
+* Utilizar uma composição horizontal, preferencialmente em formato A3.
+* Garantir que todas as partes do veículo estejam visíveis, sem cortes.
+
+RESTRIÇÕES IMPORTANTES:
+* NÃO desenhar riscos, arranhões, amassados ou qualquer tipo de avaria.
+* NÃO adicionar setas, círculos, marcações, números ou indicadores sobre o veículo.
+* NÃO inserir pessoas, objetos ou cenários.
+* NÃO utilizar perspectivas em três quartos.
+* NÃO sobrepor as vistas.
+* NÃO omitir nenhuma das cinco vistas.
+
+O resultado deve ser uma prancha técnica limpa, detalhada e precisa, com áreas livres para que um inspetor possa desenhar e identificar manualmente as avarias encontradas no veículo.`;
+}
+async function avCopy(text){
+  try{ await navigator.clipboard.writeText(text); showToast('Prompt copiado.'); }
+  catch(e){
+    const ta = document.getElementById('avPromptBox');
+    if(ta){ ta.focus(); ta.select(); try{ document.execCommand('copy'); showToast('Prompt copiado.'); return; }catch(e2){} }
+    showToast('Selecione o texto e copie manualmente.');
+  }
+}
+
+/* --- análise de imagem: tinta, regiões, silhuetas --- */
+function avCanvas(w, h){ const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
+function avInk(ctx, w, h, thr){
+  const d = ctx.getImageData(0, 0, w, h).data, ink = new Uint8Array(w*h);
+  for(let i=0, p=0; i<w*h; i++, p+=4){
+    const a = d[p+3];
+    const mn = a<128 ? 255 : Math.min(d[p], d[p+1], d[p+2]);
+    ink[i] = (255-mn) > (thr||28) ? 1 : 0;
+  }
+  return ink;
+}
+function avDilate(m, w, h, r){
+  let out = m;
+  for(let it=0; it<r; it++){
+    const n = new Uint8Array(w*h);
+    for(let y=0; y<h; y++) for(let x=0; x<w; x++){
+      const i = y*w+x;
+      if(out[i] || (x>0 && out[i-1]) || (x<w-1 && out[i+1]) || (y>0 && out[i-w]) || (y<h-1 && out[i+w])) n[i] = 1;
+    }
+    out = n;
+  }
+  return out;
+}
+// --- ferramentas de máscara (binária, 1 byte por pixel) ---
+function avLabel(mask, w, h){
+  // componentes conectados (vizinhança 4) dos pixels == 1
+  const lab = new Int32Array(w*h).fill(-1), comps = [], st = new Int32Array(w*h);
+  for(let s=0; s<w*h; s++){
+    if(!mask[s] || lab[s]>=0) continue;
+    const id = comps.length; let sp = 0; st[sp++] = s; lab[s] = id;
+    let x0=w, y0=h, x1=-1, y1=-1, n=0, touch=false;
+    while(sp){
+      const i = st[--sp], x = i%w, y = (i/w)|0; n++;
+      if(x<x0) x0=x; if(x>x1) x1=x; if(y<y0) y0=y; if(y>y1) y1=y;
+      if(x===0 || y===0 || x===w-1 || y===h-1) touch = true;
+      if(x>0 && mask[i-1] && lab[i-1]<0){ lab[i-1]=id; st[sp++]=i-1; }
+      if(x<w-1 && mask[i+1] && lab[i+1]<0){ lab[i+1]=id; st[sp++]=i+1; }
+      if(y>0 && mask[i-w] && lab[i-w]<0){ lab[i-w]=id; st[sp++]=i-w; }
+      if(y<h-1 && mask[i+w] && lab[i+w]<0){ lab[i+w]=id; st[sp++]=i+w; }
+    }
+    comps.push({id, x0, y0, x1, y1, n, touch});
+  }
+  return {lab, comps};
+}
+function avMorph(m, w, h, r, erode){
+  // erosão/dilatação 3x3 repetida r vezes (separável: linha e coluna)
+  let a = m;
+  for(let it=0; it<r; it++){
+    const t = new Uint8Array(w*h), o = new Uint8Array(w*h);
+    for(let y=0; y<h; y++){ const b = y*w;
+      for(let x=0; x<w; x++){ const l = x>0 ? a[b+x-1] : 0, c = a[b+x], rr = x<w-1 ? a[b+x+1] : 0; t[b+x] = erode ? (l&c&rr) : (l|c|rr); } }
+    for(let y=0; y<h; y++){ const b = y*w;
+      for(let x=0; x<w; x++){ const u = y>0 ? t[b-w+x] : 0, c = t[b+x], d = y<h-1 ? t[b+w+x] : 0; o[b+x] = erode ? (u&c&d) : (u|c|d); } }
+    a = o;
+  }
+  return a;
+}
+function avOpen(m, w, h, r){ return avMorph(avMorph(m, w, h, r, true), w, h, r, false); }
+// "desenho sólido": o fundo é a maior área branca + o branco que encosta na borda;
+// tudo o que estiver fechado por contorno (carroceria branca, vidros, caixas) vira sólido
+function avSolidFg(ink, w, h, useLargest){
+  const white = new Uint8Array(w*h);
+  for(let i=0;i<w*h;i++) white[i] = ink[i] ? 0 : 1;
+  const {lab, comps} = avLabel(white, w, h);
+  let big = -1; comps.forEach(c=>{ if(big<0 || c.n>comps[big].n) big = c.id; });
+  const bg = new Uint8Array(comps.length);
+  // na prancha inteira a moldura cerca tudo, então o fundo é a maior área branca; num recorte, só o branco da borda
+  comps.forEach(c=>{ if((useLargest && c.id===big) || c.touch) bg[c.id] = 1; });
+  const fg = new Uint8Array(w*h);
+  for(let i=0;i<w*h;i++) fg[i] = (lab[i]>=0 && bg[lab[i]]) ? 0 : 1;
+  return fg;
+}
+// corta uma ligação estreita ("pescoço") entre duas partes largas: ex. retrovisor encostado na caixa do título
+function avCutNeck(op, lab, c, w, rows){
+  const len = rows ? c.y1-c.y0+1 : c.x1-c.x0+1;
+  if(len<20) return false;
+  const prof = new Int32Array(len);
+  for(let y=c.y0; y<=c.y1; y++) for(let x=c.x0; x<=c.x1; x++) if(lab[y*w+x]===c.id) prof[rows ? y-c.y0 : x-c.x0]++;
+  let mx = 0; for(let i=0;i<len;i++) if(prof[i]>mx) mx = prof[i];
+  const pre = new Int32Array(len), suf = new Int32Array(len);
+  for(let i=0;i<len;i++) pre[i] = Math.max(prof[i], i ? pre[i-1] : 0);
+  for(let i=len-1;i>=0;i--) suf[i] = Math.max(prof[i], i<len-1 ? suf[i+1] : 0);
+  const thr = Math.max(3, 0.06*mx), big = 0.3*mx;
+  let best = -1;
+  for(let i=6; i<len-6; i++) if(prof[i]<=thr && pre[i-1]>=big && suf[i+1]>=big && (best<0 || prof[i]<prof[best])) best = i;
+  if(best<0) return false;
+  for(let k=best-1; k<=best+1; k++){
+    if(rows){ const y = c.y0+k; for(let x=c.x0; x<=c.x1; x++) if(lab[y*w+x]===c.id) op[y*w+x] = 0; }
+    else { const x = c.x0+k; for(let y=c.y0; y<=c.y1; y++) if(lab[y*w+x]===c.id) op[y*w+x] = 0; }
+  }
+  return true;
+}
+// acha as vistas desenhadas na prancha (ignora moldura, cabeçalho, caixas de título, antenas)
+function avDetectRegions(img){
+  const scale = Math.min(1, 1100/Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.round(img.naturalWidth*scale), h = Math.round(img.naturalHeight*scale);
+  const c = avCanvas(w, h), ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, 0, 0, w, h);
+  const ink = avInk(ctx, w, h);   // sem engrossar o traço: o título costuma ficar a poucos pixels do pneu
+  const r = Math.max(2, Math.round(Math.max(w,h)/400));
+  const op = avOpen(avSolidFg(ink, w, h, true), w, h, r);       // some com linhas finas (moldura, antenas, divisórias)
+  for(let pass=0; pass<3; pass++){
+    const {lab, comps} = avLabel(op, w, h);
+    let cut = false;
+    comps.forEach(cp=>{
+      if((cp.x1-cp.x0+1)*(cp.y1-cp.y0+1) < 0.01*w*h) return;
+      if(avCutNeck(op, lab, cp, w, true)) cut = true;
+      else if(avCutNeck(op, lab, cp, w, false)) cut = true;
+    });
+    if(!cut) break;
+  }
+  const {comps} = avLabel(avOpen(op, w, h, 1), w, h);
+  const area = b=>(b.x1-b.x0+1)*(b.y1-b.y0+1);
+  let bs = comps.filter(b=>{
+    const bw = b.x1-b.x0+1, bh = b.y1-b.y0+1, a = bw*bh/(w*h), asp = bw/bh;
+    return a>0.012 && a<0.5 && asp<5 && asp>0.2 && !b.touch;   // fora: cabeçalho e caixas de título (largas e baixas)
+  });
+  bs.sort((a,b)=>area(b)-area(a));
+  bs = bs.slice(0, 5);
+  bs.sort((a,b)=>a.y0-b.y0);
+  const rows = [];
+  bs.forEach(b=>{ const rw = rows.find(rw=>rw.some(o=>b.y0<o.y1 && o.y0<b.y1)); rw ? rw.push(b) : rows.push([b]); });
+  const ordered = rows.flatMap(rw=>rw.sort((a,b)=>a.x0-b.x0));
+  const inv = 1/scale, pad = r+1;
+  return ordered.map(b=>({x:Math.max(0,(b.x0-pad)*inv), y:Math.max(0,(b.y0-pad)*inv), w:(b.x1-b.x0+1+2*pad)*inv, h:(b.y1-b.y0+1+2*pad)*inv}));
+}
+// silhueta sólida de uma vista: maior peça do desenho, sem linhas finas soltas (antena, borda da caixa do título)
+function avSolid(src, maxLong, dil){
+  const sw = src.naturalWidth || src.width, sh = src.naturalHeight || src.height;
+  const sc = Math.min(1, (maxLong||240)/Math.max(sw, sh));
+  const w = Math.max(2, Math.round(sw*sc)), h = Math.max(2, Math.round(sh*sc));
+  const P = 3, W = w+2*P, H = h+2*P;
+  const c = avCanvas(W, H), ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H); ctx.drawImage(src, P, P, w, h);
+  const ink = avDilate(avInk(ctx, W, H, 24), W, H, dil==null ? 1 : dil);
+  const op = avOpen(avSolidFg(ink, W, H, false), W, H, Math.max(1, Math.round(Math.max(W,H)/220)));
+  const {lab, comps} = avLabel(op, W, H);
+  let big = null; comps.forEach(cp=>{ if(!big || cp.n>big.n) big = cp; });
+  const m = new Uint8Array(w*h);
+  if(big) for(let y=0;y<h;y++) for(let x=0;x<w;x++) if(lab[(y+P)*W+x+P]===big.id) m[y*w+x] = 1;
+  const bb = big ? {x0:Math.max(0,big.x0-P), y0:Math.max(0,big.y0-P), x1:Math.min(w-1,big.x1-P), y1:Math.min(h-1,big.y1-P)} : null;
+  return {w, h, m, bb, sc};
+}
+function avMask(src, maxLong){
+  const s = avSolid(src, maxLong||220), w = s.w, h = s.h, b = new Float32Array(w*h);
+  // borda suavizada (deixa o 3D mais liso)
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    let t = 0;
+    for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx, yy=y+dy; if(xx>=0&&yy>=0&&xx<w&&yy<h) t += s.m[yy*w+xx]; }
+    b[y*w+x] = t/9;
+  }
+  return {w, h, m:b};
+}
+function avSample(mk, u, v){
+  if(u<0 || v<0 || u>1 || v>1) return 0;
+  const x = u*(mk.w-1), y = v*(mk.h-1), x0 = Math.floor(x), y0 = Math.floor(y);
+  const x1 = Math.min(mk.w-1, x0+1), y1 = Math.min(mk.h-1, y0+1), fx = x-x0, fy = y-y0;
+  const a = mk.m[y0*mk.w+x0], b = mk.m[y0*mk.w+x1], c = mk.m[y1*mk.w+x0], d = mk.m[y1*mk.w+x1];
+  return (a*(1-fx)+b*fx)*(1-fy) + (c*(1-fx)+d*fx)*fy;
+}
+// recorta a vista da prancha, aplica giro/espelho e corta justo no desenho
+function avCanon(img, reg, orient, maxLong){
+  const rot = ((orient && orient.rot)||0) % 360, flip = !!(orient && orient.flip);
+  const sc = Math.min(1, (maxLong||1400)/Math.max(reg.w, reg.h));
+  const rw = Math.round(reg.w*sc), rh = Math.round(reg.h*sc);
+  const sideways = rot===90 || rot===270;
+  const c = avCanvas(sideways?rh:rw, sideways?rw:rh), ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+  ctx.translate(c.width/2, c.height/2);
+  ctx.rotate(rot*Math.PI/180);
+  if(flip) ctx.scale(-1, 1);
+  ctx.drawImage(img, reg.x, reg.y, reg.w, reg.h, -rw/2, -rh/2, rw, rh);
+  ctx.setTransform(1,0,0,1,0,0);
+  const sol = avSolid(c, 600, 0);
+  if(!sol.bb) return c;
+  const k = 1/sol.sc, pad = 2;
+  const x0 = Math.max(0, Math.floor(sol.bb.x0*k)-pad), y0 = Math.max(0, Math.floor(sol.bb.y0*k)-pad);
+  const x1 = Math.min(c.width-1, Math.ceil((sol.bb.x1+1)*k)+pad), y1 = Math.min(c.height-1, Math.ceil((sol.bb.y1+1)*k)+pad);
+  const o = avCanvas(x1-x0+1, y1-y0+1), ox = o.getContext('2d');
+  ox.drawImage(c, x0, y0, o.width, o.height, 0, 0, o.width, o.height);
+  // pinta de branco o que está fora do carro (borda da caixa do título, antena, sujeira)
+  const keep = avMorph(sol.m, sol.w, sol.h, 2, false);
+  const mc = avCanvas(sol.w, sol.h), mx = mc.getContext('2d'), id = mx.createImageData(sol.w, sol.h);
+  for(let i=0;i<sol.w*sol.h;i++){ const p = i*4; id.data[p] = id.data[p+1] = id.data[p+2] = 255; id.data[p+3] = keep[i] ? 0 : 255; }
+  mx.putImageData(id, 0, 0);
+  ox.imageSmoothingEnabled = true;
+  ox.drawImage(mc, -x0, -y0, c.width, c.height);
+  return o;
+}
+// palpites de orientação: na lateral, o capô (frente) é mais baixo que a traseira;
+// no teto, a parte mais larga (retrovisores) fica mais perto da frente
+function avGuessSideFlip(cv, want){
+  const mk = avMask(cv, 160);
+  const prof = x=>{ for(let y=0;y<mk.h;y++) if(mk.m[y*mk.w+x]>0.5) return mk.h-y; return 0; };
+  const avg = (a,b)=>{ let s=0,n=0; for(let x=Math.floor(a*mk.w); x<Math.floor(b*mk.w); x++){ s+=prof(x); n++; } return n?s/n:0; };
+  const frontIsLeft = avg(0.04,0.28) < avg(0.72,0.96);
+  return want==='left' ? !frontIsLeft : frontIsLeft;
+}
+function avGuessTopRot(cv){
+  const mk = avMask(cv, 160);
+  const tall = mk.h > mk.w;
+  const len = tall ? mk.h : mk.w;
+  const width = i=>{ let n=0; for(let j=0;j<(tall?mk.w:mk.h);j++){ const v = tall ? mk.m[i*mk.w+j] : mk.m[j*mk.w+i]; if(v>0.5) n++; } return n; };
+  let best = 0, bi = 0;
+  for(let i=Math.floor(len*0.08); i<Math.floor(len*0.92); i++){ const v = width(i); if(v>best){ best=v; bi=i; } }
+  const nearStart = bi < len/2;
+  if(tall) return nearStart ? 0 : 180;      // frente em cima → 0; embaixo → 180
+  return nearStart ? 90 : 270;              // frente à esquerda → gira 90 (horário); à direita → 270
+}
+function avAssign(regions){
+  const asp = r=>r.w/r.h;
+  const idx = regions.map((r,i)=>i);
+  const tall = idx.filter(i=>asp(regions[i])<0.75);
+  const square = idx.filter(i=>asp(regions[i])>=0.75 && asp(regions[i])<1.7);
+  const wide = idx.filter(i=>asp(regions[i])>=1.7);
+  const a = {};
+  if(square[0]!=null) a.front = square[0];
+  if(square[1]!=null) a.rear = square[1];
+  if(tall.length) a.top = tall[0];
+  const w = wide.slice();
+  if(a.top==null && w.length>=3) a.top = w.pop();
+  if(w[0]!=null) a.left = w[0];
+  if(w[1]!=null) a.right = w[1];
+  if(a.top==null && w[2]!=null) a.top = w[2];
+  const used = new Set(Object.values(a));
+  AV_VIEWS.forEach(v=>{ if(a[v.k]==null){ const f = idx.find(i=>!used.has(i)); if(f!=null){ a[v.k] = f; used.add(f); } } });
+  return a;
+}
+
+/* --- 3D a partir das silhuetas (casco visual) --- */
+function avBuildHull(views){
+  const mk = {};
+  AV_VIEWS.forEach(v=>{ if(views[v.k]) mk[v.k] = avMask(views[v.k], 240); });
+  if(!mk.left && !mk.right) return null;
+  const side = mk.left || mk.right, fr = mk.front || mk.rear, tp = mk.top;
+  const asp = m=>m.h/m.w;
+  const H = ((mk.left?asp(mk.left):0) + (mk.right?asp(mk.right):0)) / ((mk.left?1:0)+(mk.right?1:0));
+  const L = 1;
+  const ws = [];
+  if(fr){ const f = ((mk.front?mk.front.w/mk.front.h:0)+(mk.rear?mk.rear.w/mk.rear.h:0))/((mk.front?1:0)+(mk.rear?1:0)); ws.push(f*H); }
+  if(tp) ws.push(tp.w/tp.h * L);
+  const W = ws.length ? ws.reduce((a,b)=>a+b,0)/ws.length : 0.43;
+  const two = (a,b,ua,va,ub,vb)=> a&&b ? 0.5*(avSample(a,ua,va)+avSample(b,ub,vb)) : a ? avSample(a,ua,va) : b ? avSample(b,ub,vb) : 1;
+  const N = 110;
+  const d = L/N;
+  const nx = N+3, ny = Math.ceil(H/d)+3, nz = Math.ceil(W/d)+3;
+  const f = new Float32Array(nx*ny*nz);
+  const X = i=>(i-1)*d, Y = j=>(j-1)*d, Z = k=>(k-1)*d - W/2;
+  for(let k=0;k<nz;k++){ const z = Z(k);
+    for(let j=0;j<ny;j++){ const y = Y(j), vv = 1-y/H;
+      for(let i=0;i<nx;i++){ const x = X(i);
+        const s = two(mk.left, mk.right, 1-x/L, vv, x/L, vv);
+        if(s<0.02){ continue; }
+        const fv = fr ? two(mk.front, mk.rear, (W/2-z)/W, vv, (z+W/2)/W, vv) : 1;
+        if(fv<0.02) continue;
+        const t = tp ? avSample(tp, (z+W/2)/W, 1-x/L) : 1;
+        f[(k*ny+j)*nx+i] = Math.min(s, fv, t);
+      }
+    }
+  }
+  // superfície (surface nets) no nível 0,5
+  const at = (i,j,k)=>f[(k*ny+j)*nx+i];
+  const vIdx = new Int32Array(nx*ny*nz).fill(-1);
+  const pos = [];
+  const corners = [[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
+  const edges = [[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
+  for(let k=0;k<nz-1;k++) for(let j=0;j<ny-1;j++) for(let i=0;i<nx-1;i++){
+    const val = corners.map(c=>at(i+c[0],j+c[1],k+c[2])-0.5);
+    let inside = 0; val.forEach(v=>{ if(v>0) inside++; });
+    if(inside===0 || inside===8) continue;
+    let sx=0, sy=0, sz=0, n=0;
+    edges.forEach(([a,b])=>{
+      if((val[a]>0)!==(val[b]>0)){
+        const t = val[a]/(val[a]-val[b]);
+        sx += corners[a][0] + t*(corners[b][0]-corners[a][0]);
+        sy += corners[a][1] + t*(corners[b][1]-corners[a][1]);
+        sz += corners[a][2] + t*(corners[b][2]-corners[a][2]); n++;
+      }
+    });
+    vIdx[(k*ny+j)*nx+i] = pos.length/3;
+    pos.push(X(i)+sx/n*d, Y(j)+sy/n*d, Z(k)+sz/n*d);
+  }
+  const ind = [];
+  const cell = (i,j,k)=>vIdx[(k*ny+j)*nx+i];
+  const quad = (a,b,c,e,flip)=>{ if(a<0||b<0||c<0||e<0) return; if(flip) ind.push(a,c,b, a,e,c); else ind.push(a,b,c, a,c,e); };
+  for(let k=1;k<nz-1;k++) for(let j=1;j<ny-1;j++) for(let i=0;i<nx-1;i++){       // arestas em x
+    const a = at(i,j,k)>0.5, b = at(i+1,j,k)>0.5; if(a===b) continue;
+    quad(cell(i,j-1,k-1), cell(i,j,k-1), cell(i,j,k), cell(i,j-1,k), a);
+  }
+  for(let k=1;k<nz-1;k++) for(let j=0;j<ny-1;j++) for(let i=1;i<nx-1;i++){       // arestas em y
+    const a = at(i,j,k)>0.5, b = at(i,j+1,k)>0.5; if(a===b) continue;
+    quad(cell(i-1,j,k-1), cell(i-1,j,k), cell(i,j,k), cell(i,j,k-1), a);
+  }
+  for(let k=0;k<nz-1;k++) for(let j=1;j<ny-1;j++) for(let i=1;i<nx-1;i++){       // arestas em z
+    const a = at(i,j,k)>0.5, b = at(i,j,k+1)>0.5; if(a===b) continue;
+    quad(cell(i-1,j-1,k), cell(i,j-1,k), cell(i,j,k), cell(i-1,j,k), a);
+  }
+  if(!ind.length) return null;
+  return {pos:new Float32Array(pos), ind:new Uint32Array(ind), L, H, W};
+}
+
+let AV3 = null;
+async function av3Load(){
+  if(AV3) return AV3;
+  const THREE = await import('./vendor/three.module.min.js');
+  const {OrbitControls} = await import('./vendor/OrbitControls.js');
+  AV3 = {THREE, OrbitControls};
+  return AV3;
+}
+const AV_VS = `varying vec3 vP; varying vec3 vN; uniform float uS; uniform float uL;
+void main(){ vP = vec3(position.x/uS + uL*0.5, position.y/uS, position.z/uS); vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const AV_FS = `precision highp float; varying vec3 vP; varying vec3 vN;
+uniform sampler2D tF, tB, tL, tR, tT; uniform float hF, hB, hL, hR, hT; uniform float uL, uH, uW;
+void main(){
+  vec3 n = normalize(vN); float x = vP.x, y = vP.y, z = vP.z;
+  float wF = hF*pow(max(n.x,0.0),3.0), wB = hB*pow(max(-n.x,0.0),3.0), wR = hR*pow(max(n.z,0.0),3.0), wL = hL*pow(max(-n.z,0.0),3.0), wT = hT*pow(max(n.y,0.0),3.0);
+  vec3 c = vec3(0.0); float s = wF+wB+wR+wL+wT;
+  if(s < 0.0001){ gl_FragColor = vec4(vec3(0.55),1.0); return; }
+  // alfa = silhueta da vista: cada vista só pinta onde ela tem carro (evita franjas brancas do fundo)
+  vec4 sF = texture2D(tF, vec2((uW*0.5 - z)/uW, y/uH)), sB = texture2D(tB, vec2((z + uW*0.5)/uW, y/uH));
+  vec4 sL = texture2D(tL, vec2(1.0 - x/uL, y/uH)), sR = texture2D(tR, vec2(x/uL, y/uH)), sT = texture2D(tT, vec2((z + uW*0.5)/uW, x/uL));
+  vec3 ca = wF*sF.a*sF.rgb + wB*sB.a*sB.rgb + wL*sL.a*sL.rgb + wR*sR.a*sR.rgb + wT*sT.a*sT.rgb;
+  float sa = wF*sF.a + wB*sB.a + wL*sL.a + wR*sR.a + wT*sT.a;
+  if(sa > 0.02*s) c = ca/sa;
+  else c = (wF*sF.rgb + wB*sB.rgb + wL*sL.rgb + wR*sR.rgb + wT*sT.rgb)/s;
+  float sh = 0.74 + 0.26*max(dot(n, normalize(vec3(0.45,0.8,0.4))), 0.0);
+  gl_FragColor = vec4(c*sh, 1.0);
+}`;
+const AV_S = 4;   // comprimento do carro em unidades 3D
+let _avViewer = null;
+async function avViewer(key, views){
+  if(_avViewer && _avViewer.key===key) return _avViewer;
+  if(_avViewer) _avViewer.dispose();
+  const {THREE, OrbitControls} = await av3Load();
+  const hull = avBuildHull(views);
+  if(!hull) throw new Error('hull');
+  const {L, H, W} = hull, S = AV_S/L;
+  const geo = new THREE.BufferGeometry();
+  const p = hull.pos;
+  const wp = new Float32Array(p.length);
+  for(let i=0;i<p.length;i+=3){ wp[i] = (p[i]-L/2)*S; wp[i+1] = p[i+1]*S; wp[i+2] = p[i+2]*S; }
+  geo.setAttribute('position', new THREE.BufferAttribute(wp, 3));
+  geo.setIndex(new THREE.BufferAttribute(hull.ind, 1));
+  geo.computeVertexNormals();
+  // garante normais para fora: o ponto mais à frente precisa apontar para +X
+  let iMax = 0; for(let i=0;i<wp.length;i+=3) if(wp[i]>wp[iMax]) iMax = i;
+  if(geo.attributes.normal.array[iMax] < 0){
+    const ix = geo.index.array; for(let i=0;i<ix.length;i+=3){ const t = ix[i+1]; ix[i+1] = ix[i+2]; ix[i+2] = t; }
+    geo.computeVertexNormals();
+  }
+  const tex = k=>{
+    let src = views[k] || avCanvas(2,2);
+    if(views[k]){
+      // copia a vista com a silhueta no canal alfa
+      const iw = src.naturalWidth || src.width, ih = src.naturalHeight || src.height;
+      const sol = avSolid(src, 400), keep = avMorph(sol.m, sol.w, sol.h, 1, false);
+      const mc = avCanvas(sol.w, sol.h), mx = mc.getContext('2d'), id = mx.createImageData(sol.w, sol.h);
+      for(let i=0;i<sol.w*sol.h;i++){ id.data[i*4+3] = keep[i] ? 255 : 0; }
+      mx.putImageData(id, 0, 0);
+      const cv = avCanvas(iw, ih), cx = cv.getContext('2d');
+      cx.drawImage(src, 0, 0, iw, ih);
+      cx.globalCompositeOperation = 'destination-in'; cx.drawImage(mc, 0, 0, iw, ih);
+      src = cv;
+    }
+    const t = new THREE.Texture(src); t.needsUpdate = true; t.premultiplyAlpha = false; t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = 4; return t; };
+  const mat = new THREE.ShaderMaterial({vertexShader:AV_VS, fragmentShader:AV_FS, uniforms:{
+    tF:{value:tex('front')}, tB:{value:tex('rear')}, tL:{value:tex('left')}, tR:{value:tex('right')}, tT:{value:tex('top')},
+    hF:{value:views.front?1:0}, hB:{value:views.rear?1:0}, hL:{value:views.left?1:0}, hR:{value:views.right?1:0}, hT:{value:views.top?1:0},
+    uL:{value:L}, uH:{value:H}, uW:{value:W}, uS:{value:S}}});
+  const mesh = new THREE.Mesh(geo, mat);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x212227);
+  scene.add(mesh);
+  const grid = new THREE.GridHelper(12, 24, 0x3a3c44, 0x2c2e35); grid.position.y = -0.01; scene.add(grid);
+  const marks = new THREE.Group(); scene.add(marks);
+  const canvas = document.createElement('canvas');
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true; controls.minDistance = 3; controls.maxDistance = 16; controls.maxPolarAngle = Math.PI*0.495; controls.enablePan = false;
+  const target = new THREE.Vector3(0, H*S*0.45, 0);
+  const reset = ()=>{ camera.position.set(5.2, 3.0, 5.6); controls.target.copy(target); controls.update(); };
+  reset();
+  const ray = new THREE.Raycaster();
+  const toWorld = (x,y,z)=>new THREE.Vector3((x-L/2)*S, y*S, z*S);
+  // posição 3D de uma marcação feita numa vista (lança um raio vindo daquela vista)
+  const markPos = m=>{
+    const u = m.u, v = m.v; let o, dir;
+    if(m.view==='left'){ o = toWorld(L*(1-u), H*(1-v), -W*1.5); dir = new THREE.Vector3(0,0,1); }
+    else if(m.view==='right'){ o = toWorld(L*u, H*(1-v), W*1.5); dir = new THREE.Vector3(0,0,-1); }
+    else if(m.view==='front'){ o = toWorld(L*1.6, H*(1-v), W/2-u*W); dir = new THREE.Vector3(-1,0,0); }
+    else if(m.view==='rear'){ o = toWorld(-L*0.6, H*(1-v), u*W-W/2); dir = new THREE.Vector3(1,0,0); }
+    else { o = toWorld(L*(1-v), H*2, u*W-W/2); dir = new THREE.Vector3(0,-1,0); }
+    ray.set(o, dir);
+    const hit = ray.intersectObject(mesh, false)[0];
+    if(!hit) return null;
+    return hit.point.clone().add(hit.face.normal.clone().multiplyScalar(0.05));
+  };
+  const spriteCache = {};
+  const sprite = (num, color, ghost)=>{
+    const key = num+'|'+color+'|'+(ghost?1:0);
+    let mt = spriteCache[key];
+    if(!mt){
+      const c = avCanvas(64,64), x = c.getContext('2d');
+      x.beginPath(); x.arc(32,32,27,0,Math.PI*2); x.fillStyle = color; x.fill(); x.lineWidth = 5; x.strokeStyle = '#fff'; x.stroke();
+      if(!ghost){ x.fillStyle = '#fff'; x.font = 'bold 28px Inter, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(num), 32, 34); }
+      const t = new THREE.CanvasTexture(c);
+      mt = spriteCache[key] = new THREE.SpriteMaterial({map:t, transparent:true, opacity:ghost?0.45:1, depthTest:true});
+    }
+    const s = new THREE.Sprite(mt); s.scale.setScalar(ghost?0.13:0.2); return s;
+  };
+  const V = {key, canvas, renderer, scene, camera, controls, mesh, reset, alive:true, onTap:null, onMark:null,
+    setMarks(list){
+      marks.clear();
+      list.forEach(m=>{ const p = markPos(m); if(!p) return; const s = sprite(m.num, m.color, m.ghost); s.position.copy(p); s.userData.id = m.id; s.userData.ghost = m.ghost; marks.add(s); });
+    },
+    attach(el){
+      el.innerHTML = ''; el.appendChild(canvas);
+      const r = el.getBoundingClientRect();
+      renderer.setSize(r.width, r.height, false); camera.aspect = r.width/Math.max(1,r.height); camera.updateProjectionMatrix();
+    },
+    snapshot(){ renderer.render(scene, camera); return canvas.toDataURL('image/jpeg', 0.9); },
+    dispose(){ V.alive = false; controls.dispose(); renderer.dispose(); geo.dispose(); mat.dispose(); }
+  };
+  // toque rápido (sem arrastar) = marcar ou abrir avaria
+  let down = null;
+  canvas.addEventListener('pointerdown', e=>{ down = {x:e.clientX, y:e.clientY, t:Date.now()}; });
+  canvas.addEventListener('pointerup', e=>{
+    if(!down || Math.hypot(e.clientX-down.x, e.clientY-down.y)>7 || Date.now()-down.t>450){ down = null; return; }
+    down = null;
+    const r = canvas.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+    ray.setFromCamera(ndc, camera);
+    const hm = ray.intersectObjects(marks.children.filter(s=>!s.userData.ghost), false)[0];
+    if(hm){ V.onMark && V.onMark(hm.object.userData.id); return; }
+    const hit = ray.intersectObject(mesh, false)[0];
+    if(!hit || !V.onTap) return;
+    const pt = hit.point, n = hit.face.normal;
+    const x = pt.x/S + L/2, y = pt.y/S, z = pt.z/S;
+    const w = {front:Math.max(n.x,0)*(views.front?1:0), rear:Math.max(-n.x,0)*(views.rear?1:0), right:Math.max(n.z,0)*(views.right?1:0), left:Math.max(-n.z,0)*(views.left?1:0), top:Math.max(n.y,0)*(views.top?1:0)};
+    const view = Object.keys(w).sort((a,b)=>w[b]-w[a])[0];
+    const cl = t=>Math.min(1, Math.max(0, t));
+    const uv = view==='left' ? [1-x/L, 1-y/H] : view==='right' ? [x/L, 1-y/H] : view==='front' ? [(W/2-z)/W, 1-y/H] : view==='rear' ? [(z+W/2)/W, 1-y/H] : [(z+W/2)/W, 1-x/L];
+    V.onTap(view, cl(uv[0]), cl(uv[1]));
+  });
+  let lw = 0, lh = 0;
+  const loop = ()=>{
+    if(!V.alive) return;
+    requestAnimationFrame(loop);
+    if(!canvas.isConnected) return;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if(!w || !h) return;
+    if(w!==lw || h!==lh){ lw = w; lh = h; renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix(); }
+    controls.update(); renderer.render(scene, camera);
+  };
+  loop();
+  _avViewer = V;
+  return V;
+}
+
+/* --- dados --- */
+function avCar(){ return curCar(); }
+function avInsps(car){ return (car.inspections || (car.inspections = [])).slice().sort((a,b)=>a.date.localeCompare(b.date) || a.createdAt-b.createdAt); }
+function avAllMarks(car){
+  const out = [];
+  avInsps(car).forEach(ins=>ins.marks.slice().sort((a,b)=>a.createdAt-b.createdAt).forEach(m=>out.push({...m, ins})));
+  out.forEach((m,i)=>m.num = i+1);
+  return out;
+}
+function avInspMarks(ins){ return ins.marks.slice().sort((a,b)=>a.createdAt-b.createdAt).map((m,i)=>({...m, ins, num:i+1})); }
+function avFindMark(car, id){
+  for(const ins of (car.inspections||[])){ const m = ins.marks.find(x=>x.id===id); if(m) return {m, ins}; }
+  return null;
+}
+function avPlaceLabel(ins){ return [ins.place, ins.name].filter(Boolean).join(' · ') || 'Inspeção'; }
+// marcas visíveis no visualizador conforme o modo
+function avVisibleMarks(car){
+  if(AV.mode==='insp'){
+    const ins = (car.inspections||[]).find(x=>x.id===AV.inspId); if(!ins) return [];
+    const own = avInspMarks(ins).map(m=>({...m, ghost:false}));
+    const prev = AV.showPrev ? avAllMarks(car).filter(m=>m.ins.id!==ins.id && m.status!=='reparada' && m.ins.date<=ins.date).map(m=>({...m, ghost:true})) : [];
+    return prev.concat(own);
+  }
+  return avAllMarks(car).filter(m=>AV.filter==='todas' || m.status!=='reparada').map(m=>({...m, ghost:false}));
+}
+
+/* --- tela principal --- */
+function renderAvarias(){
+  const box = document.getElementById('avBody');
+  if(!box) return;
+  const car = avCar();
+  if(!car){ box.innerHTML = emptyStateHTML('🚗','Adicione um veículo em Ajustes para fazer inspeções.'); return; }
+  if(!car.ficha){
+    const nm = `${car.info.brandLabel||''} ${car.info.model||''}`.trim();
+    box.innerHTML = `<div class="section-title first">Inspeção de avarias</div>
+      <div class="flex-card"><div class="ttl">Monte a ficha do ${escapeHtml(nm)}</div>
+      <div class="detail">1. Copie o prompt pronto e gere a prancha com 5 vistas do carro no ChatGPT.<br>2. Envie a imagem aqui: o app separa as vistas e monta um 3D do carro.<br>3. Faça inspeções datadas (oficina, estacionamento, lava-rápido…) tocando no carro para marcar riscos e amassados.</div>
+      <button class="btn-primary" onclick="openAvSetup()">Começar</button></div>`;
+    return;
+  }
+  if(AV.mode==='insp' && !(car.inspections||[]).some(x=>x.id===AV.inspId)) AV.mode = 'overview';
+  const imgs = AV.imgs[STATE.currentCarId];
+  if(!imgs){
+    box.innerHTML = `<div class="empty-reminders">Carregando a ficha…</div>`;
+    avLoadImgs(STATE.currentCarId).then(r=>{ if(r) renderAvarias(); else box.innerHTML = `<div class="empty-reminders">As imagens da ficha não foram encontradas neste aparelho. <a class="link" href="#" onclick="openAvSetup(); return false">Enviar a imagem de novo</a> (as inspeções continuam salvas).</div>`; });
+    return;
+  }
+  const sc = document.getElementById('avScroll');
+  if(sc) AV.scroll = {l:sc.scrollLeft, t:sc.scrollTop, view:AV.view};
+  box.innerHTML = AV.mode==='insp' ? avInspHTML(car) : avOverviewHTML(car);
+  avMountViewer(car);
+}
+function avViewerHTML(){
+  const tabs = [{k:'3d', s:'3D'}].concat(AV_VIEWS.map(v=>({k:v.k, s:v.s})));
+  return `<div class="av-chips">${tabs.map(t=>`<div class="chip ${AV.view===t.k?'active':''}" onclick="avSetView('${t.k}')">${t.s}</div>`).join('')}</div>
+    <div class="av-stage" id="avStage"></div>`;
+}
+function avOverviewHTML(car){
+  const all = avAllMarks(car);
+  const open = all.filter(m=>m.status!=='reparada'), done = all.filter(m=>m.status==='reparada');
+  const pend = open.reduce((s,m)=>s+(Number(m.cost)||0),0), paid = done.reduce((s,m)=>s+(Number(m.cost)||0),0);
+  const insps = avInsps(car).slice().reverse();
+  const list = all.filter(m=>AV.filter==='todas' || m.status!=='reparada').slice().reverse();
+  let h = `<div class="section-title first">Visão geral</div>
+    <div class="cards-grid">
+      <div class="card" style="--bar-color:var(--yellow)"><div class="label">Avarias abertas</div><div class="value num">${open.length}</div><div class="sub">${pend>0 ? 'reparo estimado '+fmtMoneyInt(pend) : 'sem custo informado'}</div></div>
+      <div class="card" style="--bar-color:var(--teal)"><div class="label">Reparadas</div><div class="value num">${done.length}</div><div class="sub">${paid>0 ? 'gasto '+fmtMoneyInt(paid) : '—'}</div></div>
+    </div>
+    <div class="chip-row" style="margin-bottom:10px">
+      <div class="chip ${AV.filter==='abertas'?'active':''}" onclick="AV.filter='abertas'; renderAvarias()">Só abertas</div>
+      <div class="chip ${AV.filter==='todas'?'active':''}" onclick="AV.filter='todas'; renderAvarias()">Todas</div>
+    </div>
+    ${avViewerHTML()}
+    <div class="av-hint">${AV.view==='3d' ? 'Arraste para girar, pinça para zoom. Toque num número para ver a avaria.' : 'Toque num número para ver a avaria. Para marcar, abra ou crie uma inspeção.'}</div>`;
+  h += `<div class="section-title">Inspeções</div>`;
+  h += insps.length ? insps.map(ins=>{
+    const ms = ins.marks, cost = ms.reduce((s,m)=>s+(Number(m.cost)||0),0);
+    return `<div class="list-item" onclick="openAvInsp('${ins.id}')"><div class="ic">📋</div>
+      <div class="body"><div class="row1"><span class="ttl">${escapeHtml(avPlaceLabel(ins))}</span><span class="val">${fmtDateBR(ins.date)}</span></div>
+      <div class="meta">${ms.length} avaria${ms.length===1?'':'s'} marcada${ms.length===1?'':'s'}${cost>0?' · '+fmtMoneyInt(cost):''}${ins.note?' · '+escapeHtml(ins.note):''}</div></div></div>`;
+  }).join('') : `<div class="empty-reminders">Nenhuma inspeção ainda. Faça a primeira agora para registrar o estado atual do carro.</div>`;
+  h += `<button class="btn-ghost" style="margin-top:2px" onclick="openAvInspForm()">+ Nova inspeção</button>`;
+  h += `<div class="section-title">Avarias ${AV.filter==='todas'?'(todas)':'abertas'}</div>`;
+  h += list.length ? list.map(m=>avMarkRow(m, true)).join('') : `<div class="empty-reminders">${all.length ? 'Nenhuma avaria aberta.' : 'Nenhuma avaria registrada.'}</div>`;
+  h += `<div class="section-title">Ficha</div><div class="settings-group">
+    <div class="settings-item" onclick="avExportPDF(null)"><div><div class="ttl">Exportar visão geral em PDF</div><div class="sub">Vistas com as avarias numeradas e a lista completa</div></div><span class="arrow">⇩</span></div>
+    <div class="settings-item" onclick="openAvSetup()"><div><div class="ttl">Refazer a ficha</div><div class="sub">Copiar o prompt ou enviar outra imagem do carro</div></div><span class="arrow">›</span></div>
+  </div>`;
+  return h;
+}
+function avMarkRow(m, showIns){
+  return `<div class="list-item" onclick="openAvMark('${m.id}')">
+    <div class="av-num" style="background:${avColor(m.type)}">${m.num}</div>
+    <div class="body"><div class="row1"><span class="ttl">${escapeHtml(m.type)}<span class="av-tag ${m.status==='reparada'?'done':'open'}">${m.status==='reparada'?'reparada':'aberta'}</span></span><span class="val">${Number(m.cost)>0?fmtMoneyInt(m.cost):''}</span></div>
+    <div class="meta">${AV_VIEW[m.view].l} · ${m.severity}${showIns?' · '+fmtDateBR(m.ins.date)+' ('+escapeHtml(m.ins.place||'inspeção')+')':''}</div>
+    ${m.desc?`<div class="meta">${escapeHtml(m.desc)}</div>`:''}</div></div>`;
+}
+function avInspHTML(car){
+  const ins = car.inspections.find(x=>x.id===AV.inspId);
+  const ms = avInspMarks(ins);
+  let h = `<div class="av-back"><button onclick="AV.mode='overview'; renderAvarias(); window.scrollTo(0,0)">‹ Voltar</button>
+    <div class="t"><b>${escapeHtml(avPlaceLabel(ins))}</b><span>Inspeção de ${fmtDateBR(ins.date)} · ${ms.length} avaria${ms.length===1?'':'s'}</span></div>
+    <button onclick="openAvInspForm('${ins.id}')">Editar</button></div>
+    <div class="av-chips">${AV_TYPES.map(t=>`<div class="chip ${AV.tool===t.t?'active':''}" onclick="AV.tool='${t.t}'; renderAvarias()"><span class="dt" style="background:${t.c}"></span>${t.t}</div>`).join('')}</div>
+    <div class="av-chips">${AV_SEV.map(s=>`<div class="chip ${AV.sev===s?'active':''}" onclick="AV.sev='${s}'; renderAvarias()">${s}</div>`).join('')}
+      <div class="chip ${AV.showPrev?'active':''}" onclick="AV.showPrev=!AV.showPrev; renderAvarias()">Mostrar anteriores</div></div>
+    ${avViewerHTML()}
+    <div class="av-hint">Toque no carro para marcar <b style="color:${avColor(AV.tool)}">${escapeHtml(AV.tool)}</b> (${AV.sev.toLowerCase()}). ${AV.view==='3d'?'Arraste para girar. ':''}${AV.showPrev?'Pontos apagados = avarias abertas de inspeções anteriores.':''}</div>
+    <div class="field-row" style="margin-bottom:6px"><button class="btn-ghost" style="margin:0" onclick="avUndo()">Desfazer última</button><button class="btn-ghost" style="margin:0" onclick="avExportPDF('${ins.id}')">PDF desta inspeção</button></div>`;
+  h += `<div class="section-title">Avarias desta inspeção</div>`;
+  h += ms.length ? ms.slice().reverse().map(m=>avMarkRow(m, false)).join('') : `<div class="empty-reminders">Nenhuma avaria marcada. Se o carro está sem avarias, a inspeção vazia já serve de registro.</div>`;
+  return h;
+}
+function avSetView(v){ AV.view = v; renderAvarias(); }
+function avStageMarks(car, view){
+  return avVisibleMarks(car).filter(m=>m.view===view);
+}
+async function avMountViewer(car){
+  const st = document.getElementById('avStage'); if(!st) return;
+  // só monta (e só baixa o 3D) com a aba Avarias aberta
+  if(!document.getElementById('view-avarias').classList.contains('active')){ st.innerHTML = ''; return; }
+  const imgs = AV.imgs[STATE.currentCarId];
+  if(AV.view==='3d'){
+    st.innerHTML = `<div class="av-3d" id="av3d"><div class="msg">Montando o 3D…</div></div>
+      <div class="av-zoom"><button onclick="_avViewer && _avViewer.reset()" title="Recentralizar">⟲</button></div>`;
+    try{
+      const V = await avViewer(STATE.currentCarId+'|'+car.ficha.createdAt, imgs.views);
+      const el = document.getElementById('av3d'); if(!el) return;
+      V.attach(el);
+      V.setMarks(avVisibleMarks(car).map(m=>({id:m.id, view:m.view, u:m.u, v:m.v, num:m.num, color:avColor(m.type), ghost:m.ghost})));
+      V.onMark = id=>openAvMark(id);
+      V.onTap = AV.mode==='insp' ? (view,u,v)=>avAddMark(view,u,v) : null;
+    }catch(e){
+      const el = document.getElementById('av3d');
+      if(el) el.innerHTML = `<div class="msg">${navigator.onLine===false && !AV3 ? 'Abra uma vez com internet para carregar o 3D.' : 'Não deu para montar o 3D com estas vistas. Use as abas de cada vista, ou refaça a ficha conferindo a orientação das laterais e do teto.'}</div>`;
+    }
+    return;
+  }
+  const img = imgs.views[AV.view];
+  if(!img){ st.innerHTML = `<div class="msg" style="padding:30px;text-align:center;color:var(--text-dim);font-size:13px">Esta vista não foi definida na ficha.</div>`; return; }
+  const marks = avStageMarks(car, AV.view);
+  st.innerHTML = `<div class="av-scroll" id="avScroll"><div class="av-imgwrap" id="avWrap" style="width:${AV.zoom*100}%">
+      <img src="${img.src}" alt="">
+      ${marks.map(m=>`<div class="av-dot ${m.ghost?'ghost':''} ${m.status==='reparada'?'done':''} ${m.id===AV.lastAdded?'new':''}" style="left:${(m.u*100).toFixed(3)}%; top:${(m.v*100).toFixed(3)}%; background:${avColor(m.type)}" data-id="${m.ghost?'':m.id}">${m.ghost?'':m.num}</div>`).join('')}
+    </div></div>
+    <div class="av-zoom"><button onclick="avZoom(-1)">−</button><button onclick="avZoom(1)">+</button></div>`;
+  const wrap = document.getElementById('avWrap');
+  if(AV.scroll && AV.scroll.view===AV.view){ const sc = document.getElementById('avScroll'); sc.scrollLeft = AV.scroll.l; sc.scrollTop = AV.scroll.t; }
+  wrap.addEventListener('click', e=>{
+    const dot = e.target.closest('.av-dot');
+    if(dot){ if(dot.dataset.id) openAvMark(dot.dataset.id); return; }
+    if(AV.mode!=='insp') return;
+    const r = wrap.querySelector('img').getBoundingClientRect();
+    const u = (e.clientX-r.left)/r.width, v = (e.clientY-r.top)/r.height;
+    if(u<0||v<0||u>1||v>1) return;
+    avAddMark(AV.view, u, v);
+  });
+  AV.lastAdded = null;
+}
+function avZoom(d){
+  AV.zoom = Math.min(4, Math.max(1, AV.zoom + d));
+  const wrap = document.getElementById('avWrap'), sc = document.getElementById('avScroll');
+  if(!wrap) return;
+  const cx = (sc.scrollLeft + sc.clientWidth/2)/sc.scrollWidth, cy = (sc.scrollTop + sc.clientHeight/2)/Math.max(1,sc.scrollHeight);
+  wrap.style.width = (AV.zoom*100)+'%';
+  sc.scrollLeft = cx*sc.scrollWidth - sc.clientWidth/2; sc.scrollTop = cy*sc.scrollHeight - sc.clientHeight/2;
+}
+async function avAddMark(view, u, v){
+  const car = avCar(); const ins = car.inspections.find(x=>x.id===AV.inspId); if(!ins) return;
+  const m = {id:uid(), view, u:+u.toFixed(4), v:+v.toFixed(4), type:AV.tool, severity:AV.sev, desc:'', cost:null, status:'aberta', createdAt:Date.now()};
+  ins.marks.push(m);
+  AV.lastAdded = m.id;
+  await persistCar(STATE.currentCarId);
+  if(AV.view==='3d' && _avViewer){
+    _avViewer.setMarks(avVisibleMarks(car).map(x=>({id:x.id, view:x.view, u:x.u, v:x.v, num:x.num, color:avColor(x.type), ghost:x.ghost})));
+    const sc = window.scrollY;
+    // atualiza só a lista, sem remontar o 3D
+    const box = document.getElementById('avBody'); const tmp = document.createElement('div'); tmp.innerHTML = avInspHTML(car);
+    const oldStage = document.getElementById('avStage');
+    tmp.querySelector('#avStage').replaceWith(oldStage);
+    box.innerHTML = ''; while(tmp.firstChild) box.appendChild(tmp.firstChild);
+    window.scrollTo(0, sc);
+  } else renderAvarias();
+  showToast(`${m.type} marcado em ${AV_VIEW[view].l.toLowerCase()}.`);
+}
+async function avUndo(){
+  const car = avCar(); const ins = car.inspections.find(x=>x.id===AV.inspId); if(!ins || !ins.marks.length) return;
+  const last = ins.marks.slice().sort((a,b)=>b.createdAt-a.createdAt)[0];
+  ins.marks = ins.marks.filter(x=>x.id!==last.id);
+  await persistCar(STATE.currentCarId);
+  renderAvarias();
+}
+
+/* --- inspeções --- */
+let aiPlace = AV_PLACES[0];
+function openAvInspForm(id){
+  const car = avCar(); if(!car) return;
+  if(!car.ficha){ openAvSetup(); return; }
+  STATE.editing = id || null;
+  const ins = id ? car.inspections.find(x=>x.id===id) : null;
+  document.getElementById('aiTitle').textContent = ins ? 'Editar inspeção' : 'Nova inspeção';
+  document.getElementById('ai-date').value = ins ? ins.date : todayISO();
+  document.getElementById('ai-name').value = ins ? (ins.name||'') : '';
+  document.getElementById('ai-note').value = ins ? (ins.note||'') : '';
+  aiPlace = ins ? ins.place : AV_PLACES[0];
+  buildChips('ai-place-chips', AV_PLACES, aiPlace, v=>aiPlace = v);
+  document.getElementById('ai-delete').style.display = ins ? 'block' : 'none';
+  openOverlay('ov-av-insp');
+}
+async function saveAvInsp(){
+  const car = avCar(); car.inspections = car.inspections || [];
+  const data = {date:document.getElementById('ai-date').value || todayISO(), place:aiPlace, name:document.getElementById('ai-name').value.trim(), note:document.getElementById('ai-note').value.trim()};
+  let id = STATE.editing;
+  if(id) Object.assign(car.inspections.find(x=>x.id===id), data);
+  else { id = uid(); car.inspections.push({id, createdAt:Date.now(), marks:[], ...data}); }
+  await persistCar(STATE.currentCarId);
+  if(!STATE.editing) await bumpBackupCounter();
+  closeOverlay('ov-av-insp');
+  AV.mode = 'insp'; AV.inspId = id;
+  renderAvarias(); window.scrollTo(0,0);
+}
+async function deleteAvInsp(){
+  const car = avCar(); const id = STATE.editing; if(!id) return;
+  const ins = car.inspections.find(x=>x.id===id);
+  if(!confirm(`Excluir esta inspeção e as ${ins.marks.length} avaria(s) dela?`)) return;
+  car.inspections = car.inspections.filter(x=>x.id!==id);
+  await persistCar(STATE.currentCarId);
+  closeOverlay('ov-av-insp');
+  AV.mode = 'overview'; renderAvarias();
+}
+function openAvInsp(id){ AV.mode = 'insp'; AV.inspId = id; renderAvarias(); window.scrollTo(0,0); }
+
+/* --- avaria --- */
+let amType, amSev, amStatus, amId = null;
+function openAvMark(id){
+  const car = avCar(); const f = avFindMark(car, id); if(!f) return;
+  amId = id;
+  const {m, ins} = f;
+  const num = avAllMarks(car).find(x=>x.id===id).num;
+  document.getElementById('amTitle').textContent = `Avaria ${num}`;
+  document.getElementById('amInfo').textContent = `${AV_VIEW[m.view].l} · inspeção de ${fmtDateBR(ins.date)} (${avPlaceLabel(ins)})`;
+  amType = m.type; amSev = m.severity; amStatus = m.status||'aberta';
+  buildChips('am-type-chips', AV_TYPES.map(t=>t.t), amType, v=>amType = v);
+  buildChips('am-sev-chips', AV_SEV, amSev, v=>amSev = v);
+  buildChips('am-status-chips', ['Aberta','Reparada'], amStatus==='reparada'?'Reparada':'Aberta', v=>{ amStatus = v==='Reparada'?'reparada':'aberta'; avRepairUI(m); });
+  document.getElementById('am-desc').value = m.desc||'';
+  document.getElementById('am-cost').value = m.cost!=null ? m.cost : '';
+  document.getElementById('am-rdate').value = m.repairedAt || todayISO();
+  avRepairUI(m);
+  openOverlay('ov-av-mark');
+}
+function avRepairUI(m){
+  document.getElementById('am-repair').style.display = amStatus==='reparada' ? 'block' : 'none';
+  const car = avCar();
+  const linked = m.maintId && car.maintenance.some(x=>x.id===m.maintId);
+  document.getElementById('am-maint-row').style.display = linked ? 'none' : 'flex';
+  document.getElementById('am-maint-info').textContent = linked ? 'Já lançado em Manutenção. Para mudar o valor lá, edite o registro na aba Manutenção.' : 'Cria um registro em Manutenção com o custo, a data e o km atual.';
+}
+async function saveAvMark(){
+  const car = avCar(); const f = avFindMark(car, amId); if(!f) return;
+  const m = f.m;
+  const cost = document.getElementById('am-cost').value;
+  Object.assign(m, {type:amType, severity:amSev, desc:document.getElementById('am-desc').value.trim(), cost: cost==='' ? null : Number(cost), status:amStatus});
+  m.repairedAt = amStatus==='reparada' ? (document.getElementById('am-rdate').value || todayISO()) : null;
+  let launched = false;
+  const linked = m.maintId && car.maintenance.some(x=>x.id===m.maintId);
+  if(amStatus==='reparada' && !linked && document.getElementById('am-maint').classList.contains('on')){
+    if(!(Number(m.cost)>0)){ showToast('Informe o custo do reparo para lançar em Manutenção.'); return; }
+    const rec = {id:uid(), date:m.repairedAt, odometer:currentOdometer(car), type:'Outro', customType:`Reparo de lataria: ${m.type.toLowerCase()} (${AV_VIEW[m.view].l.toLowerCase()})`,
+      cost:Number(m.cost), workshop:'', note:[m.desc, 'lançado pela aba Avarias'].filter(Boolean).join(' · '), nextKm:null, nextDate:null};
+    car.maintenance.push(rec); m.maintId = rec.id; launched = true;
+  }
+  await persistCar(STATE.currentCarId);
+  if(launched) await bumpBackupCounter();
+  closeOverlay('ov-av-mark');
+  renderAll();
+  showToast(launched ? 'Avaria salva e lançada em Manutenção.' : 'Avaria salva.');
+}
+async function deleteAvMark(){
+  const car = avCar(); const f = avFindMark(car, amId); if(!f) return;
+  if(!confirm('Excluir esta avaria?')) return;
+  f.ins.marks = f.ins.marks.filter(x=>x.id!==amId);
+  await persistCar(STATE.currentCarId);
+  closeOverlay('ov-av-mark');
+  renderAvarias();
+}
+
+/* --- montar a ficha --- */
+const AVS = {};
+function openAvSetup(){
+  const car = avCar(); if(!car){ openVehicleForm(); return; }
+  Object.assign(AVS, {step:1, sheet:null, regions:[], assign:{}, orient:{}, canon:{}, cropFor:null,
+    model: (car.ficha && car.ficha.model) || `${car.info.brandLabel||''} ${car.info.model||''}`.trim(),
+    year: (car.ficha && car.ficha.year) || car.info.year || '', color: (car.ficha && car.ficha.color) || ''});
+  renderAvSetup();
+  openOverlay('ov-av-setup');
+}
+function avSetupField(id, label, val, ph){ return `<div class="field"><label>${label}</label><input type="text" id="${id}" value="${escapeHtml(val)}" placeholder="${ph||''}" oninput="avSetupInput()"></div>`; }
+function avSetupInput(){
+  AVS.model = document.getElementById('as-model').value; AVS.year = document.getElementById('as-year').value; AVS.color = document.getElementById('as-color').value;
+  document.getElementById('avPromptBox').value = avPrompt(AVS.model, AVS.year, AVS.color);
+}
+function renderAvSetup(){
+  const b = document.getElementById('avSetupBody');
+  if(AVS.step===1){
+    b.innerHTML = `<div class="av-step" style="margin-top:0">1 · Gere a prancha do carro</div>
+      ${avSetupField('as-model','Modelo (como aparece para a IA)', AVS.model, 'Ex.: Volkswagen Polo TSI Sense')}
+      <div class="field-row">${avSetupField('as-year','Ano/modelo', AVS.year, '2026')}${avSetupField('as-color','Cor', AVS.color, 'Ex.: branco')}</div>
+      <textarea class="av-prompt" id="avPromptBox" readonly>${escapeHtml(avPrompt(AVS.model, AVS.year, AVS.color))}</textarea>
+      <button class="btn-primary" onclick="avCopy(document.getElementById('avPromptBox').value).then(()=>window.open('https://chatgpt.com/','_blank'))">Copiar e abrir o ChatGPT</button>
+      <button class="btn-ghost" onclick="avCopy(document.getElementById('avPromptBox').value)">Só copiar o prompt</button>
+      <div class="hint" style="margin-top:8px"><b style="color:var(--text)">Recomendado: ChatGPT.</b> Cole o prompt, espere a imagem ficar pronta e baixe para o celular. Confira se as 5 vistas saíram inteiras e sem marcações; se alguma sair estranha, peça para refazer antes de enviar.</div>
+      <div class="av-step">2 · Envie a imagem gerada</div>
+      <input type="file" id="as-file" accept="image/*" style="display:none" onchange="avSetupFile(this.files[0])">
+      <button class="btn-ghost" onclick="document.getElementById('as-file').click()">Escolher a imagem baixada</button>`;
+    return;
+  }
+  b.innerHTML = `<div class="av-step" style="margin-top:0">3 · Confira as 5 vistas</div>
+    <div class="hint" style="margin-top:0">O app encontrou ${AVS.regions.length} área${AVS.regions.length===1?'':'s'} desenhada${AVS.regions.length===1?'':'s'} (numeradas abaixo). Confira se cada vista ficou certa e na posição indicada.${AVS.cropFor?'':' Se alguma estiver errada, troque a área ou recorte à mão.'}</div>
+    <div class="av-sheet" id="avSheet"><canvas id="avSheetCv"></canvas></div>
+    ${AVS.cropFor ? `<div class="fipe-msg">Arraste o dedo sobre a imagem acima para recortar a vista <b>${AV_VIEW[AVS.cropFor].l}</b>. <a class="link" href="#" onclick="AVS.cropFor=null; renderAvSetup(); return false">Cancelar</a></div>` : ''}
+    ${AV_VIEWS.map(v=>`<div class="av-slot"><div class="hd"><b>${v.l}</b>
+        <select onchange="avSetAssign('${v.k}', this.value)"><option value="">—</option>${AVS.regions.map((r,i)=>`<option value="${i}" ${AVS.assign[v.k]===i?'selected':''}>Área ${i+1}</option>`).join('')}</select></div>
+      <div class="thumb" id="avThumb-${v.k}">${AVS.assign[v.k]==null?'<span style="color:#888;font-size:12px">sem área</span>':''}</div>
+      <div class="row"><span class="h">${v.hint}</span>
+        ${v.k==='left'||v.k==='right' ? `<button onclick="avOrient('${v.k}','flip')">↔ Espelhar</button>` : ''}
+        ${v.k==='top' ? `<button onclick="avOrient('top','rot')">⟳ Girar</button>` : ''}
+        ${v.k==='front'||v.k==='rear' ? `<button onclick="avOrient('${v.k}','flip')">↔ Espelhar</button>` : ''}
+        <button onclick="AVS.cropFor='${v.k}'; renderAvSetup(); document.getElementById('avSheet').scrollIntoView({behavior:'smooth'})">✂ Recortar à mão</button></div></div>`).join('')}
+    <div class="av-step">4 · Pré-visualização 3D</div>
+    <div class="av-stage"><div class="av-3d" id="avSetup3d" style="height:240px;min-height:240px"><div class="msg"><button class="btn-ghost" style="width:auto;margin:0" onclick="avSetupPreview()">Montar o 3D</button></div></div></div>
+    <div class="hint">O 3D é aproximado, montado pelas silhuetas das vistas. Se ficar torto, quase sempre é uma lateral ou o teto com a frente virada para o lado errado.</div>
+    <button class="btn-primary" onclick="avSetupSave()">Salvar ficha</button>
+    <button class="btn-ghost" onclick="AVS.step=1; renderAvSetup()">Voltar e trocar a imagem</button>`;
+  avDrawSheet();
+  AV_VIEWS.forEach(v=>avDrawThumb(v.k));
+}
+async function avSetupFile(file){
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = ()=>{
+    // guarda uma cópia reduzida da prancha (para refazer o recorte depois)
+    const sc = Math.min(1, 2400/Math.max(img.naturalWidth, img.naturalHeight));
+    const c = avCanvas(img.naturalWidth*sc, img.naturalHeight*sc), x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    const sheet = new Image();
+    sheet.onload = ()=>{
+      AVS.sheet = sheet; AVS.sheetData = sheet.src;
+      AVS.regions = avDetectRegions(sheet);
+      AVS.assign = avAssign(AVS.regions);
+      AVS.orient = {};
+      AV_VIEWS.forEach(v=>{
+        AVS.orient[v.k] = {rot:0, flip:false};
+        const r = AVS.regions[AVS.assign[v.k]];
+        if(!r) return;
+        if(v.k==='top') AVS.orient.top.rot = avGuessTopRot(avCanon(sheet, r, {rot:0}, 400));
+        if(v.k==='left' || v.k==='right') AVS.orient[v.k].flip = avGuessSideFlip(avCanon(sheet, r, {rot:0}, 400), v.k);
+      });
+      AVS.step = 2; avRecanon(); renderAvSetup();
+      if(AVS.regions.length<5) showToast(`Só achei ${AVS.regions.length} vista(s). Recorte as que faltam à mão.`);
+    };
+    sheet.src = c.toDataURL('image/jpeg', 0.9);
+  };
+  img.onerror = ()=>showToast('Não consegui abrir essa imagem.');
+  img.src = url;
+}
+function avRecanon(k){
+  (k ? [k] : AV_VIEWS.map(v=>v.k)).forEach(key=>{
+    const r = AVS.regions[AVS.assign[key]];
+    AVS.canon[key] = r ? avCanon(AVS.sheet, r, AVS.orient[key], 1400) : null;
+  });
+  AVS.previewDirty = true;
+}
+function avSetAssign(k, val){ AVS.assign[k] = val==='' ? null : Number(val); avRecanon(k); renderAvSetup(); }
+function avOrient(k, what){
+  const o = AVS.orient[k];
+  if(what==='flip') o.flip = !o.flip; else o.rot = (o.rot+90)%360;
+  avRecanon(k); avDrawThumb(k);
+  const box = document.getElementById('avSetup3d');
+  if(box && box.querySelector('canvas')) avSetupPreview();
+}
+function avDrawThumb(k){
+  const el = document.getElementById('avThumb-'+k); if(!el) return;
+  const cv = AVS.canon[k]; if(!cv){ el.innerHTML = '<span style="color:#888;font-size:12px">sem área</span>'; return; }
+  const t = avCanvas(cv.width, cv.height); t.getContext('2d').drawImage(cv, 0, 0);
+  el.innerHTML = ''; el.appendChild(t);
+}
+function avDrawSheet(){
+  const cv = document.getElementById('avSheetCv'); if(!cv || !AVS.sheet) return;
+  const img = AVS.sheet, sc = Math.min(1, 1000/img.naturalWidth);
+  cv.width = img.naturalWidth*sc; cv.height = img.naturalHeight*sc;
+  const x = cv.getContext('2d');
+  const draw = (tmp)=>{
+    x.drawImage(img, 0, 0, cv.width, cv.height);
+    AVS.regions.forEach((r,i)=>{
+      const used = Object.values(AVS.assign).includes(i);
+      x.strokeStyle = used ? '#ff8a3d' : '#999'; x.lineWidth = 3; x.setLineDash(used?[]:[8,6]);
+      x.strokeRect(r.x*sc, r.y*sc, r.w*sc, r.h*sc); x.setLineDash([]);
+      x.fillStyle = used ? '#ff8a3d' : '#999'; x.fillRect(r.x*sc, r.y*sc, 34, 26);
+      x.fillStyle = '#fff'; x.font = 'bold 18px Inter, sans-serif'; x.fillText(String(i+1), r.x*sc+10, r.y*sc+19);
+    });
+    if(tmp){ x.strokeStyle = '#1e88e5'; x.lineWidth = 3; x.strokeRect(tmp.x, tmp.y, tmp.w, tmp.h); }
+  };
+  draw();
+  if(!AVS.cropFor) return;
+  let st = null;
+  const pt = e=>{ const r = cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*cv.width, y:(e.clientY-r.top)/r.height*cv.height}; };
+  cv.onpointerdown = e=>{ st = pt(e); cv.setPointerCapture(e.pointerId); };
+  cv.onpointermove = e=>{ if(!st) return; const p = pt(e); draw({x:Math.min(st.x,p.x), y:Math.min(st.y,p.y), w:Math.abs(p.x-st.x), h:Math.abs(p.y-st.y)}); };
+  cv.onpointerup = e=>{
+    if(!st) return; const p = pt(e);
+    const r = {x:Math.min(st.x,p.x)/sc, y:Math.min(st.y,p.y)/sc, w:Math.abs(p.x-st.x)/sc, h:Math.abs(p.y-st.y)/sc}; st = null;
+    if(r.w<20 || r.h<20){ draw(); return; }
+    AVS.regions.push(r); AVS.assign[AVS.cropFor] = AVS.regions.length-1;
+    const k = AVS.cropFor; AVS.cropFor = null; avRecanon(k); renderAvSetup();
+  };
+}
+async function avSetupPreview(){
+  const box = document.getElementById('avSetup3d'); if(!box) return;
+  box.innerHTML = '<div class="msg">Montando…</div>';
+  try{
+    const V = await avViewer('setup|'+Date.now(), AVS.canon);
+    V.attach(box); V.setMarks([]); V.onTap = null; V.onMark = null;
+  }catch(e){ box.innerHTML = `<div class="msg">${!AV3 && navigator.onLine===false ? 'Precisa de internet na primeira vez para carregar o 3D.' : 'Não deu para montar o 3D: confira se as duas laterais estão definidas.'}</div>`; }
+}
+async function avSetupSave(){
+  const car = avCar();
+  const missing = AV_VIEWS.filter(v=>!AVS.canon[v.k]).map(v=>v.l);
+  if(!AVS.canon.left && !AVS.canon.right){ showToast('Defina pelo menos uma lateral.'); return; }
+  if(missing.length && !confirm(`Faltam: ${missing.join(', ')}. Salvar mesmo assim?`)) return;
+  const rec = {views:{}, sheet:AVS.sheetData, createdAt:Date.now()};
+  AV_VIEWS.forEach(v=>{ if(AVS.canon[v.k]) rec.views[v.k] = AVS.canon[v.k].toDataURL('image/jpeg', 0.88); });
+  try{ await avIdb('put', 'ficha:'+STATE.currentCarId, rec); }
+  catch(e){ showToast('Não consegui salvar as imagens neste aparelho.'); return; }
+  car.ficha = {createdAt:rec.createdAt, model:AVS.model, year:AVS.year, color:AVS.color};
+  car.inspections = car.inspections || [];
+  await persistCar(STATE.currentCarId);
+  delete AV.imgs[STATE.currentCarId];
+  if(_avViewer){ _avViewer.dispose(); _avViewer = null; }
+  closeOverlay('ov-av-setup');
+  AV.mode = 'overview'; AV.view = '3d';
+  renderAvarias();
+  showToast(car.inspections.length ? 'Ficha atualizada.' : 'Ficha salva. Agora faça a primeira inspeção.');
+}
+
+/* --- PDF --- */
+async function avExportPDF(inspId){
+  const car = avCar(); const imgs = await avLoadImgs(STATE.currentCarId); if(!imgs) return;
+  const ins = inspId ? car.inspections.find(x=>x.id===inspId) : null;
+  const marks = ins ? avInspMarks(ins) : avAllMarks(car);
+  const drawView = k=>{
+    const img = imgs.views[k]; if(!img) return '';
+    const lay = k==='top';   // no PDF o teto fica deitado, com a frente para a esquerda
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const c = lay ? avCanvas(ih, iw) : avCanvas(iw, ih), x = c.getContext('2d');
+    if(lay){ x.translate(0, iw); x.rotate(-Math.PI/2); x.drawImage(img, 0, 0); x.setTransform(1,0,0,1,0,0); }
+    else x.drawImage(img, 0, 0);
+    const r = Math.max(11, Math.round(Math.max(c.width, c.height)*0.018));
+    marks.filter(m=>m.view===k).forEach(m=>{
+      const px = lay ? m.v*ih : m.u*c.width, py = lay ? (1-m.u)*iw : m.v*c.height;
+      x.beginPath(); x.arc(px, py, r, 0, Math.PI*2); x.fillStyle = avColor(m.type); x.globalAlpha = m.status==='reparada' ? 0.5 : 1; x.fill();
+      x.lineWidth = Math.max(2, r*0.18); x.strokeStyle = '#fff'; x.stroke(); x.globalAlpha = 1;
+      x.fillStyle = '#fff'; x.font = `bold ${Math.round(r*1.05)}px Inter, Arial, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(m.num), px, py+1);
+    });
+    return `<div><div class="av-pdf-lbl">${AV_VIEW[k].l}</div><img src="${c.toDataURL('image/jpeg', 0.88)}"></div>`;
+  };
+  const nm = `${car.info.brandLabel||''} ${car.info.model||''}`.trim();
+  const total = marks.reduce((s,m)=>s+(Number(m.cost)||0),0);
+  let html = `<h1>${ins ? 'Inspeção de avarias' : 'Avarias — visão geral'}</h1>
+    <div class="meta">${escapeHtml(nm)}${car.info.year?' · '+escapeHtml(car.info.year):''}${car.info.plate?' · placa '+escapeHtml(car.info.plate):''}${car.ficha.color?' · '+escapeHtml(car.ficha.color):''}</div>
+    <div class="meta">${ins ? `Data: ${fmtDateBR(ins.date)} · ${escapeHtml(avPlaceLabel(ins))}${ins.note?' · '+escapeHtml(ins.note):''}` : `${avInsps(car).length} inspeções · gerado em ${fmtDateBR(todayISO())}`} · km atual ${fmtKm(currentOdometer(car))}</div>
+    <div class="av-pdf-row">${drawView('front')}${drawView('rear')}</div>
+    <div class="av-pdf-row">${drawView('left')}</div>
+    <div class="av-pdf-row">${drawView('right')}</div>
+    <div class="av-pdf-row"><div style="flex:0.25"></div>${drawView('top')}<div style="flex:0.25"></div></div>
+    <h2>Avarias (${marks.length})</h2>`;
+  html += marks.length ? `<table><tr><th>#</th><th>Tipo</th><th>Gravidade</th><th>Vista</th>${ins?'':'<th>Inspeção</th>'}<th>Descrição</th><th>Situação</th><th>Custo</th></tr>
+    ${marks.map(m=>`<tr><td>${m.num}</td><td>${escapeHtml(m.type)}</td><td>${m.severity}</td><td>${AV_VIEW[m.view].l}</td>${ins?'':`<td>${fmtDateBR(m.ins.date)} · ${escapeHtml(m.ins.place||'')}</td>`}<td>${escapeHtml(m.desc||'')}</td><td>${m.status==='reparada'?'Reparada'+(m.repairedAt?' em '+fmtDateBR(m.repairedAt):''):'Aberta'}</td><td>${Number(m.cost)>0?fmtMoney(m.cost):''}</td></tr>`).join('')}
+    </table>${total>0?`<div class="meta"><b>Total de custos informados: ${fmtMoney(total)}</b></div>`:''}` : `<div class="empty">Nenhuma avaria registrada${ins?' nesta inspeção':''}.</div>`;
+  const box = document.getElementById('printExport');
+  box.innerHTML = html;
+  const ims = [...box.querySelectorAll('img')];
+  await Promise.all(ims.map(i=>i.complete ? null : new Promise(r=>{ i.onload = r; i.onerror = r; })));
+  setTimeout(()=>window.print(), 80);
+}
+
+/* --- backup das imagens --- */
+async function avExportImgs(){
+  const out = {};
+  for(const id of Object.keys(STATE.cars)){
+    if(!STATE.cars[id].ficha) continue;
+    try{ const r = await avIdb('get', 'ficha:'+id); if(r) out[id] = r; }catch(e){}
+  }
+  return out;
+}
+async function avImportImgs(map){
+  for(const id of Object.keys(map||{})){
+    try{ await avIdb('put', 'ficha:'+id, map[id]); delete AV.imgs[id]; }catch(e){}
+  }
+  if(_avViewer){ _avViewer.dispose(); _avViewer = null; }
+}
+
+document.querySelector('.navbtn[data-view="avarias"]').addEventListener('click', ()=>renderAvarias());
 
 /* ============ INIT ============ */
 /* ============ APP INSTALÁVEL (PWA) ============ */

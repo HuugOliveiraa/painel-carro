@@ -1,7 +1,7 @@
 // Service worker do Painel do Carro: deixa o app abrir mesmo sem internet.
 // Ao publicar uma versão nova do index.html, troque o número abaixo (v1 -> v2...)
 // para o celular baixar a atualização.
-const CACHE = 'painel-carro-v9';
+const CACHE = 'painel-carro-v10';
 const APP_FILES = [
   './',
   './index.html',
@@ -9,7 +9,9 @@ const APP_FILES = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './vendor/three.module.min.js',
+  './vendor/OrbitControls.js'
 ];
 
 self.addEventListener('install', e => {
