@@ -388,6 +388,27 @@ a.link{color:var(--teal);}
 #printExport .av-pdf-row > div{flex:1; min-width:0;}
 #printExport .av-pdf-row img{width:100%; border:1px solid #bbb; border-radius:4px;}
 #printExport .av-pdf-lbl{font-size:10px; font-weight:600; color:#333; margin-bottom:3px;}
+.rp-box{background:var(--bg); border:1px solid var(--border); border-radius:10px; margin-bottom:12px; overflow:hidden;}
+.rp-row{display:flex; gap:11px; align-items:flex-start; padding:11px 12px; border-bottom:1px solid var(--border); cursor:pointer;}
+.rp-row:last-child{border-bottom:none;}
+.rp-row input{width:19px; height:19px; margin:1px 0 0; accent-color:var(--accent); flex-shrink:0;}
+.rp-row b{display:block; font-size:13.5px; font-weight:600;}
+.rp-row small{display:block; font-size:11.5px; color:var(--text-dim); margin-top:2px; line-height:1.4;}
+.av-dot.okk{opacity:0.75; border-style:dashed;}
+.av-tag.ok{border-color:var(--blue); color:var(--blue);}
+#printExport .pdf-reminders .sub b{color:#111;}
+.cat-rows{border-top:1px solid var(--border); padding-top:4px;}
+.cat-row{display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid var(--border);}
+.cat-row:last-child{border-bottom:none;}
+.cat-row .dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+.cat-row .nm{flex:1; min-width:0;}
+.cat-row .t{font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.cat-row .g{font-size:10.5px; color:var(--text-dim); margin-left:4px;}
+.cat-row .mb{height:4px; border-radius:2px; background:var(--bg-el-2); margin-top:4px; overflow:hidden;}
+.cat-row .mb span{display:block; height:100%;}
+.cat-row .v{font-family:'Oswald',sans-serif; font-size:13px; font-weight:600; text-align:right; white-space:nowrap;}
+.cat-row .v span{display:block; font-family:'Inter',sans-serif; font-size:10.5px; font-weight:500; color:var(--text-dim);}
+#printExport .cat-row{padding:4px 0;}
 </style>
 </head>
 <body>
@@ -422,7 +443,7 @@ a.link{color:var(--teal);}
     <div class="bars" id="monthBars"></div>
     <div class="section-title">Evolução da quilometragem</div>
     <div id="kmChart"></div>
-    <div class="section-title">Gastos por categoria (total)</div>
+    <div class="section-title">Gastos por categoria (total, detalhado)</div>
     <div class="cat-box" id="categoryBreakdown"></div>
     <div class="section-title">Últimos registros</div>
     <div id="recentList"></div>
@@ -461,8 +482,8 @@ a.link{color:var(--teal);}
         <div><div class="ttl">Importar backup</div><div class="sub">Restaurar a partir de um arquivo .json</div></div>
         <span class="arrow">⇧</span>
       </div>
-      <div class="settings-item" onclick="exportPDF()">
-        <div><div class="ttl">Exportar tudo em PDF</div><div class="sub">Gera um relatório com todos os veículos e registros para salvar ou imprimir</div></div>
+      <div class="settings-item" onclick="openReport()">
+        <div><div class="ttl">Relatório em PDF</div><div class="sub">Escolha veículos, período e o que entra: registros, FIPE, avarias…</div></div>
         <span class="arrow">⇩</span>
       </div>
     </div>
@@ -798,6 +819,18 @@ a.link{color:var(--teal);}
   </div>
 </div>
 
+<!-- RELATÓRIO EM PDF -->
+<div class="overlay" id="ov-report">
+  <div class="sheet" style="max-height:94vh">
+    <button class="close" onclick="closeOverlay('ov-report')">×</button>
+    <h2>Relatório em PDF</h2>
+    <div class="hint" style="margin-top:-8px">Marque o que entra. As escolhas ficam salvas para a próxima vez.</div>
+    <div class="field-row" style="margin-bottom:4px"><button class="btn-ghost" style="margin:0" onclick="rpAll(true)">Marcar tudo</button><button class="btn-ghost" style="margin:0" onclick="rpAll(false)">Desmarcar tudo</button></div>
+    <div id="rpBody"></div>
+    <button class="btn-primary" onclick="generateReport()">Gerar PDF</button>
+    <div class="hint" style="margin-top:8px">Na tela de impressão, escolha "Salvar como PDF".</div>
+  </div>
+</div>
 <div id="printExport"></div>
 
 <script>
@@ -1006,20 +1039,39 @@ function categorySpendAll(car){
   const expenses = car.expenses.reduce((s,r)=>s+(Number(r.value)||0),0);
   return {fuel, maintenance, expenses};
 }
-function buildCategoryBreakdownHTML(car){
-  const {fuel, maintenance, expenses} = categorySpendAll(car);
-  const total = fuel+maintenance+expenses;
-  if(total<=0) return `<div class="empty-reminders">Nenhum gasto registrado ainda.</div>`;
-  const segs = [
-    {label:'Combustível', value:fuel, color:'var(--accent)'},
-    {label:'Manutenção', value:maintenance, color:'var(--blue)'},
-    {label:'Despesas', value:expenses, color:'var(--red)'}
-  ];
-  const bar = segs.filter(s=>s.value>0).map(s=>`<span style="width:${(s.value/total*100).toFixed(2)}%; background:${s.color}"></span>`).join('');
-  const legend = segs.map(s=>`
-    <div class="item"><span class="dot" style="background:${s.color}"></span>${s.label}: ${fmtMoney(s.value)} (${Math.round(s.value/total*100)}%)</div>
-  `).join('');
-  return `<div class="cat-bar">${bar}</div><div class="cat-legend">${legend}</div>`;
+// gastos detalhados: combustível por tipo, manutenção por serviço e despesas por categoria (IPVA, pedágio...)
+const CAT_COLORS = {
+  fuel:['#ff8a3d','#ffb27a','#e0b84a','#f4d27a'],
+  maint:['#5b8cb0','#7fb0d6','#3f6d91','#9cc6e6','#2f5674','#b7d6ee'],
+  exp:['#e85c4a','#c47fb8','#8a7fd0','#e0866b','#d4a14a','#b5546b','#7fc47f','#3fd0c9','#9aa3ad','#f28fb1']
+};
+function categoryDetail(car, from, to){
+  const inR = d=>(!from || d>=from) && (!to || d<=to);
+  const add = (map, k, v)=>{ map[k] = (map[k]||0) + (Number(v)||0); };
+  const fuel = {}, maint = {}, exp = {};
+  car.fuel.forEach(r=>{ if(inR(r.date)) add(fuel, r.fuelType||'Combustível', r.total); });
+  car.maintenance.forEach(r=>{ if(inR(r.date)) add(maint, r.type==='Outro' ? (r.customType||'Outro') : r.type, r.cost); });
+  car.expenses.forEach(r=>{ if(inR(r.date)) add(exp, r.category||'Outro', r.value); });
+  const items = [];
+  [['fuel','Combustível',fuel], ['maint','Manutenção',maint], ['exp','Despesas',exp]].forEach(([g, gl, map])=>{
+    Object.entries(map).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).forEach(([k,v],i)=>items.push({group:g, groupLabel:gl, label:k, value:v, color:CAT_COLORS[g][i % CAT_COLORS[g].length]}));
+  });
+  return items;
+}
+function buildCategoryBreakdownHTML(car, from, to){
+  const items = categoryDetail(car, from, to);
+  const total = items.reduce((s,x)=>s+x.value, 0);
+  if(total<=0) return `<div class="empty-reminders">Nenhum gasto registrado${from?' no período':' ainda'}.</div>`;
+  const pct = v=>(v/total*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
+  const groups = ['fuel','maint','exp'].map(g=>({g, label:{fuel:'Combustível',maint:'Manutenção',exp:'Despesas'}[g], value:items.filter(x=>x.group===g).reduce((s,x)=>s+x.value,0), color:CAT_COLORS[g][0]})).filter(x=>x.value>0);
+  const bar = items.map(s=>`<span style="width:${(s.value/total*100).toFixed(2)}%; background:${s.color}" title="${escapeHtml(s.label)}"></span>`).join('');
+  const sumLine = groups.map(g=>`<div class="item"><span class="dot" style="background:${g.color}"></span><b style="color:var(--text)">${g.label}</b>&nbsp;${fmtMoney(g.value)} (${pct(g.value)})</div>`).join('');
+  const max = Math.max(...items.map(x=>x.value));
+  const rows = items.slice().sort((a,b)=>b.value-a.value).map(s=>`<div class="cat-row">
+      <span class="dot" style="background:${s.color}"></span>
+      <div class="nm"><div class="t">${escapeHtml(s.label)} <span class="g">${s.groupLabel}</span></div><div class="mb"><span style="width:${(s.value/max*100).toFixed(1)}%; background:${s.color}"></span></div></div>
+      <div class="v">${fmtMoney(s.value)}<span>${pct(s.value)}</span></div></div>`).join('');
+  return `<div class="cat-bar">${bar}</div><div class="cat-legend" style="margin-bottom:10px">${sumLine}</div><div class="cat-rows">${rows}</div>`;
 }
 function renderCategoryBreakdown(car){
   const el = document.getElementById('categoryBreakdown');
@@ -1296,7 +1348,7 @@ function renderPainel(){
   grid.innerHTML = `
     <div class="card" style="--bar-color:var(--accent)"><div class="label">Gasto este mês</div><div class="value num">${fmtMoney(spentMonth)}</div></div>
     <div class="card" style="--bar-color:var(--blue)"><div class="label">Gasto este ano</div><div class="value num">${fmtMoney(spentYear)}</div></div>
-    <div class="card" style="--bar-color:var(--teal)"><div class="label">Consumo médio</div><div class="value num">${kml? kml.toFixed(1)+' km/l' : '—'}</div><div class="sub">${kml? '' : 'registre 2+ tanques cheios'}</div></div>
+    ${dashThirdCardHTML(car)}
     <div class="card" style="--bar-color:var(--yellow)"><div class="label">Km por mês</div><div class="value num">${kmMes? fmtKm(kmMes)+' km' : '—'}</div><div class="sub">${kmMes? '' : 'defina a data da compra'}</div></div>
     ${costPerKmCardHTML(car)}
   `;
@@ -1334,6 +1386,14 @@ function renderPainel(){
   renderCategoryBreakdown(car);
 }
 
+// 3º card do Painel: valor FIPE (se o carro estiver vinculado) ou média de gastos por mês
+function dashThirdCardHTML(car){
+  const f = car.info.fipe, A = (f && f.yearCode && typeof fipeAnalyze==='function') ? fipeAnalyze(f) : null;
+  if(A) return `<div class="card" style="--bar-color:var(--teal); cursor:pointer" onclick="goView('fipe')"><div class="label">Valor FIPE</div><div class="value num">${fmtMoneyInt(A.last.price)}</div><div class="sub">${A.chg1 ? 'mês '+fmtPct(A.chg1.pct)+' · ' : ''}ref. ${kLabel(A.last.k)}</div></div>`;
+  const months = car.info.purchaseDate ? Math.max(1, daysBetween(car.info.purchaseDate, todayISO())/30.44) : null;
+  const tot = totalSpentAll(car);
+  return `<div class="card" style="--bar-color:var(--teal)"><div class="label">Gasto médio por mês</div><div class="value num">${months && tot>0 ? fmtMoney(tot/months) : '—'}</div><div class="sub">${months ? 'desde a compra' : 'defina a data da compra'}</div></div>`;
+}
 function costPerKmCardHTML(car){
   const c = costPerKm(car);
   if(!c) return `<div class="card wide" style="--bar-color:var(--red)"><div class="label">Custo por km</div><div class="value num">—</div><div class="sub">registre 2+ abastecimentos com odômetro</div></div>`;
@@ -2022,110 +2082,6 @@ async function exportData(){
   showToast('Backup exportado.');
 }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function exportPDF(){
-  const cars = Object.values(STATE.cars);
-  if(!cars.length){ showToast('Nenhum veículo cadastrado.'); return; }
-  const now = new Date();
-  let html = `<h1>Painel do Carro — Relatório completo</h1><div class="meta">Gerado em ${fmtDateBR(todayISO())} às ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>`;
-
-  cars.forEach(car=>{
-    const info = car.info;
-    const pb = brandOf(info);
-    const logoInner = pb ? logoImgHTML(pb.slug) : `<span class="fb">${escapeHtml(brandInitials(info.brandLabel))}</span>`;
-    const odo = currentOdometer(car);
-    const kmRodados = odo - (Number(info.initialOdometer)||0);
-    const monthFrom = todayISO().slice(0,7)+'-01';
-    const monthTo = todayISO();
-    const yearFrom = now.getFullYear()+'-01-01';
-    const spentMonth = totalSpentRange(car, monthFrom, monthTo);
-    const spentYear = totalSpentRange(car, yearFrom, monthTo);
-    const kml = avgConsumption(car);
-    const kmMes = avgKmPerMonth(car);
-    const reminders = [revisionReminder(car), ...upcomingReminders(car)];
-
-    html += `<div class="car-block">`;
-    html += `<div class="pdf-header"><div class="pdf-logo">${logoInner}</div><div>
-      <h2 style="margin:0">${escapeHtml(info.brandLabel||'')} ${escapeHtml(info.model||'')} ${info.year?('· '+escapeHtml(info.year)):''}</h2>
-      <div class="meta">Placa: ${escapeHtml(info.plate||'-')} · Odômetro atual: ${fmtKm(odo)} km · Gasto total: ${fmtMoney(totalSpentAll(car))}${(()=>{const c=costPerKm(car); return c? ' · Custo por km: '+fmtMoney(c.total) : '';})()}</div>
-    </div></div>`;
-
-    html += `<div class="pdf-cards">
-      <div class="pdf-card"><div class="l">GASTO ESTE MÊS</div><div class="v">${fmtMoney(spentMonth)}</div></div>
-      <div class="pdf-card"><div class="l">GASTO ESTE ANO</div><div class="v">${fmtMoney(spentYear)}</div></div>
-      <div class="pdf-card"><div class="l">CONSUMO MÉDIO</div><div class="v">${kml? kml.toFixed(1)+' km/l' : '—'}</div></div>
-      <div class="pdf-card"><div class="l">KM POR MÊS</div><div class="v">${kmMes? fmtKm(kmMes)+' km' : '—'}</div></div>
-    </div>`;
-
-    html += `<h3>Gastos por categoria (total)</h3>`;
-    html += `<div class="cat-box">${buildCategoryBreakdownHTML(car)}</div>`;
-
-    html += `<h3>Próximos vencimentos</h3>`;
-    html += reminders.length ? `<div class="pdf-reminders">${reminders.slice(0,6).map(r=>`
-      <div class="item"><div class="dot" style="background:${r.urgent?'var(--red)':r.soon?'var(--yellow)':'var(--teal)'}"></div><div><div>${escapeHtml(r.title)}</div><div class="sub">${escapeHtml(r.sub)}</div></div></div>
-    `).join('')}</div>` : `<div class="empty">Nenhum vencimento cadastrado.</div>`;
-
-    const barsSvg = buildMonthBarsSVG(car);
-    const kmSvg = buildKmChartSVG(car);
-    html += `<div class="pdf-charts">
-      <div><div class="chart-lbl">Gastos por mês (últimos 6 meses)</div>${barsSvg}</div>
-      <div><div class="chart-lbl">Evolução da quilometragem</div>${kmSvg || '<div class="km-chart-box"><div class="km-chart-empty">Sem dados suficientes.</div></div>'}</div>
-    </div>`;
-
-    // Ranking de postos
-    const rank = stationRanking(car);
-    if(rank.length){
-      html += `<h3>Postos por preço médio do litro</h3>`;
-      html += `<table><thead><tr><th>#</th><th>Posto</th><th>Combustível</th><th>R$/L médio</th><th>Abastecimentos</th></tr></thead><tbody>${rank.map((s,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.fuelType)}</td><td>${fmtMoney3(s.price)}</td><td>${s.count}</td></tr>`).join('')}</tbody></table>`;
-    }
-
-    // Combustível
-    html += `<h3>Abastecimentos (${car.fuel.length})</h3>`;
-    if(car.fuel.length){
-      const rows = [...car.fuel].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
-        const price = r.liters>0 ? (r.total/r.liters) : 0;
-        return `<tr><td>${fmtDateBR(r.date)}</td><td>${fmtKm(r.odometer)}</td><td>${escapeHtml(r.fuelType||'')}</td><td>${(Number(r.liters)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td>${fmtMoney(price)}</td><td>${fmtMoney(r.total)}</td><td>${escapeHtml(r.station||'')}</td><td>${r.full?'Sim':'Não'}</td></tr>`;
-      }).join('');
-      html += `<table><thead><tr><th>Data</th><th>Odômetro</th><th>Combustível</th><th>Litros</th><th>R$/L</th><th>Total</th><th>Posto</th><th>Cheio</th></tr></thead><tbody>${rows}</tbody></table>`;
-    } else html += `<div class="empty">Nenhum registro.</div>`;
-
-    // Manutenção
-    html += `<h3>Manutenções (${car.maintenance.length})</h3>`;
-    if(car.maintenance.length){
-      const rows = [...car.maintenance].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
-        const tipo = r.type==='Outro' ? (r.customType||'Outro') : r.type;
-        const proxima = [r.nextKm?`${fmtKm(r.nextKm)} km`:'', r.nextDate?fmtDateBR(r.nextDate):''].filter(Boolean).join(' / ');
-        return `<tr><td>${fmtDateBR(r.date)}</td><td>${fmtKm(r.odometer)}</td><td>${escapeHtml(tipo)}</td><td>${fmtMoney(r.cost)}</td><td>${escapeHtml(r.workshop||'')}</td><td>${escapeHtml(r.note||'')}</td><td>${escapeHtml(proxima)}</td></tr>`;
-      }).join('');
-      html += `<table><thead><tr><th>Data</th><th>Odômetro</th><th>Tipo</th><th>Custo</th><th>Oficina</th><th>Obs.</th><th>Próxima em</th></tr></thead><tbody>${rows}</tbody></table>`;
-    } else html += `<div class="empty">Nenhum registro.</div>`;
-
-    // Atualizações de km
-    const upds = car.odoUpdates||[];
-    if(upds.length){
-      html += `<h3>Atualizações de km (${upds.length})</h3>`;
-      const rows = [...upds].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`<tr><td>${fmtDateBR(r.date)}</td><td>${fmtKm(r.odometer)}</td></tr>`).join('');
-      html += `<table><thead><tr><th>Data</th><th>Odômetro</th></tr></thead><tbody>${rows}</tbody></table>`;
-    }
-
-    // Despesas
-    html += `<h3>Outras despesas (${car.expenses.length})</h3>`;
-    if(car.expenses.length){
-      const rows = [...car.expenses].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
-        const rec = r.recurring ? `${escapeHtml(r.frequency||'')}${r.dueDate?(' (venc. '+fmtDateBR(r.dueDate)+')'):''}` : '-';
-        return `<tr><td>${fmtDateBR(r.date)}</td><td>${escapeHtml(r.category||'')}</td><td>${fmtMoney(r.value)}</td><td>${escapeHtml(r.note||'')}</td><td>${rec}</td></tr>`;
-      }).join('');
-      html += `<table><thead><tr><th>Data</th><th>Categoria</th><th>Valor</th><th>Obs.</th><th>Recorrência</th></tr></thead><tbody>${rows}</tbody></table>`;
-    } else html += `<div class="empty">Nenhum registro.</div>`;
-
-    html += `</div>`;
-  });
-
-  const box = document.getElementById('printExport');
-  box.innerHTML = html;
-  const imgs = [...box.querySelectorAll('img')];
-  Promise.all(imgs.map(i=> i.complete ? null : new Promise(r=>{ i.onload=r; i.onerror=r; })))
-    .then(()=>setTimeout(()=>window.print(), 80));
-}
 document.getElementById('importFile').addEventListener('change', async (e)=>{
   const file = e.target.files[0]; if(!file) return;
   try{
@@ -2825,6 +2781,7 @@ function renderFipeAlert(){
 }
 function renderFipeView(){
   if(!document.getElementById('fipeOwn') || !FIPE.settings) return;
+  if(curCar()){ const g = document.getElementById('dashCards'); if(g && curCar().info.fipe){ const c = g.children[2]; if(c){ const t = document.createElement('div'); t.innerHTML = dashThirdCardHTML(curCar()); c.replaceWith(t.firstElementChild); } } }
   renderFipeOwn(); renderFipeWatch(); renderFipeSettingsBox(); renderFipeAlert();
   const det = document.getElementById('ov-fipe-detail');
   if(det.classList.contains('show') && det.dataset.id) renderFipeDetail(det.dataset.id);
@@ -3151,6 +3108,12 @@ const AV_TYPES = [
   {t:'Lasca de pintura', c:'#9c4dcc'}, {t:'Mancha', c:'#2e9d55'}, {t:'Trinca / quebra', c:'#ef7d22'}, {t:'Outro', c:'#7d8a9a'}
 ];
 const AV_SEV = ['Leve','Moderada','Grave'];
+// situação da avaria: aberta (precisa reparar), reparada, ou sem necessidade de reparo (fica registrada, não entra no custo pendente)
+const AV_STATUS = {aberta:'Aberta', reparada:'Reparada', semreparo:'Sem necessidade de reparo'};
+const AV_STATUS_TAG = {aberta:['open','aberta'], reparada:['done','reparada'], semreparo:['ok','sem reparo']};
+function avSt(m){ return m.status || 'aberta'; }
+function avStatusText(m){ const s = avSt(m); return s==='reparada' ? 'Reparada'+(m.repairedAt?' em '+fmtDateBR(m.repairedAt):'') : AV_STATUS[s]; }
+function avFilterOk(m){ return AV.filter==='todas' || avSt(m)===(AV.filter==='abertas' ? 'aberta' : AV.filter); }
 const AV_PLACES = ['Oficina','Concessionária','Estacionamento','Lava-rápido','Compra','Venda','Rotina','Outro'];
 function avColor(type){ return (AV_TYPES.find(x=>x.t===type)||AV_TYPES[6]).c; }
 
@@ -3899,10 +3862,10 @@ function avVisibleMarks(car){
   if(AV.mode==='insp'){
     const ins = (car.inspections||[]).find(x=>x.id===AV.inspId); if(!ins) return [];
     const own = avInspMarks(ins).map(m=>({...m, ghost:false}));
-    const prev = AV.showPrev ? avAllMarks(car).filter(m=>m.ins.id!==ins.id && m.status!=='reparada' && m.ins.date<=ins.date).map(m=>({...m, ghost:true})) : [];
+    const prev = AV.showPrev ? avAllMarks(car).filter(m=>m.ins.id!==ins.id && avSt(m)!=='reparada' && m.ins.date<=ins.date).map(m=>({...m, ghost:true})) : [];
     return prev.concat(own);
   }
-  return avAllMarks(car).filter(m=>AV.filter==='todas' || m.status!=='reparada').map(m=>({...m, ghost:false}));
+  return avAllMarks(car).filter(avFilterOk).map(m=>({...m, ghost:false}));
 }
 
 /* --- tela principal --- */
@@ -3938,17 +3901,19 @@ function avViewerHTML(){
 }
 function avOverviewHTML(car){
   const all = avAllMarks(car);
-  const open = all.filter(m=>m.status!=='reparada'), done = all.filter(m=>m.status==='reparada');
+  const open = all.filter(m=>avSt(m)==='aberta'), done = all.filter(m=>avSt(m)==='reparada'), okk = all.filter(m=>avSt(m)==='semreparo');
   const pend = open.reduce((s,m)=>s+(Number(m.cost)||0),0), paid = done.reduce((s,m)=>s+(Number(m.cost)||0),0);
   const insps = avInsps(car).slice().reverse();
-  const list = all.filter(m=>AV.filter==='todas' || m.status!=='reparada').slice().reverse();
+  const list = all.filter(avFilterOk).slice().reverse();
   let h = `<div class="section-title first">Visão geral</div>
     <div class="cards-grid">
       <div class="card" style="--bar-color:var(--yellow)"><div class="label">Avarias abertas</div><div class="value num">${open.length}</div><div class="sub">${pend>0 ? 'reparo estimado '+fmtMoneyInt(pend) : 'sem custo informado'}</div></div>
       <div class="card" style="--bar-color:var(--teal)"><div class="label">Reparadas</div><div class="value num">${done.length}</div><div class="sub">${paid>0 ? 'gasto '+fmtMoneyInt(paid) : '—'}</div></div>
+      <div class="card wide" style="--bar-color:var(--blue)"><div class="label">Sem necessidade de reparo</div><div class="value num">${okk.length}</div><div class="sub">marcas registradas que você decidiu não reparar</div></div>
     </div>
     <div class="chip-row" style="margin-bottom:10px">
-      <div class="chip ${AV.filter==='abertas'?'active':''}" onclick="AV.filter='abertas'; renderAvarias()">Só abertas</div>
+      <div class="chip ${AV.filter==='abertas'?'active':''}" onclick="AV.filter='abertas'; renderAvarias()">Abertas</div>
+      <div class="chip ${AV.filter==='semreparo'?'active':''}" onclick="AV.filter='semreparo'; renderAvarias()">Sem reparo</div>
       <div class="chip ${AV.filter==='todas'?'active':''}" onclick="AV.filter='todas'; renderAvarias()">Todas</div>
     </div>
     ${avViewerHTML()}
@@ -3961,10 +3926,10 @@ function avOverviewHTML(car){
       <div class="meta">${ms.length} avaria${ms.length===1?'':'s'} marcada${ms.length===1?'':'s'}${cost>0?' · '+fmtMoneyInt(cost):''}${ins.note?' · '+escapeHtml(ins.note):''}</div></div></div>`;
   }).join('') : `<div class="empty-reminders">Nenhuma inspeção ainda. Faça a primeira agora para registrar o estado atual do carro.</div>`;
   h += `<button class="btn-ghost" style="margin-top:2px" onclick="openAvInspForm()">+ Nova inspeção</button>`;
-  h += `<div class="section-title">Avarias ${AV.filter==='todas'?'(todas)':'abertas'}</div>`;
-  h += list.length ? list.map(m=>avMarkRow(m, true)).join('') : `<div class="empty-reminders">${all.length ? 'Nenhuma avaria aberta.' : 'Nenhuma avaria registrada.'}</div>`;
+  h += `<div class="section-title">Avarias ${{todas:'(todas)', abertas:'abertas', semreparo:'sem necessidade de reparo'}[AV.filter]||''}</div>`;
+  h += list.length ? list.map(m=>avMarkRow(m, true)).join('') : `<div class="empty-reminders">${all.length ? 'Nenhuma avaria nesta situação.' : 'Nenhuma avaria registrada.'}</div>`;
   h += `<div class="section-title">Ficha</div><div class="settings-group">
-    <div class="settings-item" onclick="avExportPDF(null)"><div><div class="ttl">Exportar visão geral em PDF</div><div class="sub">Vistas com as avarias numeradas e a lista completa</div></div><span class="arrow">⇩</span></div>
+    <div class="settings-item" onclick="openReport('avarias')"><div><div class="ttl">Relatório em PDF</div><div class="sub">Escolha o que entra: vistas com avarias, lista, inspeções e as outras abas</div></div><span class="arrow">⇩</span></div>
     <div class="settings-item" onclick="openAvSetup()"><div><div class="ttl">Refazer a ficha</div><div class="sub">Copiar o prompt ou enviar outra imagem do carro</div></div><span class="arrow">›</span></div>
   </div>`;
   return h;
@@ -3972,7 +3937,7 @@ function avOverviewHTML(car){
 function avMarkRow(m, showIns){
   return `<div class="list-item" onclick="openAvMark('${m.id}')">
     <div class="av-num" style="background:${avColor(m.type)}">${m.num}</div>
-    <div class="body"><div class="row1"><span class="ttl">${escapeHtml(m.type)}<span class="av-tag ${m.status==='reparada'?'done':'open'}">${m.status==='reparada'?'reparada':'aberta'}</span></span><span class="val">${Number(m.cost)>0?fmtMoneyInt(m.cost):''}</span></div>
+    <div class="body"><div class="row1"><span class="ttl">${escapeHtml(m.type)}<span class="av-tag ${AV_STATUS_TAG[avSt(m)][0]}">${AV_STATUS_TAG[avSt(m)][1]}</span></span><span class="val">${Number(m.cost)>0?fmtMoneyInt(m.cost):''}</span></div>
     <div class="meta">${AV_VIEW[m.view].l} · ${m.severity}${showIns?' · '+fmtDateBR(m.ins.date)+' ('+escapeHtml(m.ins.place||'inspeção')+')':''}</div>
     ${m.desc?`<div class="meta">${escapeHtml(m.desc)}</div>`:''}</div></div>`;
 }
@@ -4023,7 +3988,7 @@ async function avMountViewer(car){
   const marks = avStageMarks(car, AV.view);
   st.innerHTML = `<div class="av-scroll" id="avScroll"><div class="av-imgwrap" id="avWrap" style="width:${AV.zoom*100}%">
       <img src="${img.src}" alt="">
-      ${marks.map(m=>`<div class="av-dot ${m.ghost?'ghost':''} ${m.status==='reparada'?'done':''} ${m.id===AV.lastAdded?'new':''}" style="left:${(m.u*100).toFixed(3)}%; top:${(m.v*100).toFixed(3)}%; background:${avColor(m.type)}" data-id="${m.ghost?'':m.id}">${m.ghost?'':m.num}</div>`).join('')}
+      ${marks.map(m=>`<div class="av-dot ${m.ghost?'ghost':''} ${avSt(m)==='reparada'?'done':avSt(m)==='semreparo'?'okk':''} ${m.id===AV.lastAdded?'new':''}" style="left:${(m.u*100).toFixed(3)}%; top:${(m.v*100).toFixed(3)}%; background:${avColor(m.type)}" data-id="${m.ghost?'':m.id}">${m.ghost?'':m.num}</div>`).join('')}
     </div></div>
     <div class="av-zoom"><button onclick="avZoom(-1)">−</button><button onclick="avZoom(1)">+</button></div>`;
   const wrap = document.getElementById('avWrap');
@@ -4124,7 +4089,7 @@ function openAvMark(id){
   amType = m.type; amSev = m.severity; amStatus = m.status||'aberta';
   buildChips('am-type-chips', AV_TYPES.map(t=>t.t), amType, v=>amType = v);
   buildChips('am-sev-chips', AV_SEV, amSev, v=>amSev = v);
-  buildChips('am-status-chips', ['Aberta','Reparada'], amStatus==='reparada'?'Reparada':'Aberta', v=>{ amStatus = v==='Reparada'?'reparada':'aberta'; avRepairUI(m); });
+  buildChips('am-status-chips', Object.values(AV_STATUS), AV_STATUS[amStatus]||'Aberta', v=>{ amStatus = Object.keys(AV_STATUS).find(k=>AV_STATUS[k]===v); avRepairUI(m); });
   document.getElementById('am-desc').value = m.desc||'';
   document.getElementById('am-cost').value = m.cost!=null ? m.cost : '';
   document.getElementById('am-rdate').value = m.repairedAt || todayISO();
@@ -4329,11 +4294,7 @@ async function avSetupSave(){
 }
 
 /* --- PDF --- */
-async function avExportPDF(inspId){
-  const car = avCar(); const imgs = await avLoadImgs(STATE.currentCarId); if(!imgs) return;
-  const ins = inspId ? car.inspections.find(x=>x.id===inspId) : null;
-  const marks = ins ? avInspMarks(ins) : avAllMarks(car);
-  const drawView = k=>{
+function avDrawViewHTML(imgs, k, marks){
     const img = imgs.views[k]; if(!img) return '';
     const lay = k==='top';   // no PDF o teto fica deitado, com a frente para a esquerda
     const iw = img.naturalWidth, ih = img.naturalHeight;
@@ -4343,12 +4304,17 @@ async function avExportPDF(inspId){
     const r = Math.max(11, Math.round(Math.max(c.width, c.height)*0.018));
     marks.filter(m=>m.view===k).forEach(m=>{
       const px = lay ? m.v*ih : m.u*c.width, py = lay ? (1-m.u)*iw : m.v*c.height;
-      x.beginPath(); x.arc(px, py, r, 0, Math.PI*2); x.fillStyle = avColor(m.type); x.globalAlpha = m.status==='reparada' ? 0.5 : 1; x.fill();
+      x.beginPath(); x.arc(px, py, r, 0, Math.PI*2); x.fillStyle = avColor(m.type); x.globalAlpha = avSt(m)==='aberta' ? 1 : 0.5; x.fill();
       x.lineWidth = Math.max(2, r*0.18); x.strokeStyle = '#fff'; x.stroke(); x.globalAlpha = 1;
       x.fillStyle = '#fff'; x.font = `bold ${Math.round(r*1.05)}px Inter, Arial, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(m.num), px, py+1);
     });
     return `<div><div class="av-pdf-lbl">${AV_VIEW[k].l}</div><img src="${c.toDataURL('image/jpeg', 0.88)}"></div>`;
-  };
+  }
+async function avExportPDF(inspId){
+  const car = avCar(); const imgs = await avLoadImgs(STATE.currentCarId); if(!imgs) return;
+  const ins = inspId ? car.inspections.find(x=>x.id===inspId) : null;
+  const marks = ins ? avInspMarks(ins) : avAllMarks(car);
+  const drawView = k=>avDrawViewHTML(imgs, k, marks);
   const nm = `${car.info.brandLabel||''} ${car.info.model||''}`.trim();
   const total = marks.reduce((s,m)=>s+(Number(m.cost)||0),0);
   let html = `<h1>${ins ? 'Inspeção de avarias' : 'Avarias — visão geral'}</h1>
@@ -4360,7 +4326,7 @@ async function avExportPDF(inspId){
     <div class="av-pdf-row"><div style="flex:0.25"></div>${drawView('top')}<div style="flex:0.25"></div></div>
     <h2>Avarias (${marks.length})</h2>`;
   html += marks.length ? `<table><tr><th>#</th><th>Tipo</th><th>Gravidade</th><th>Vista</th>${ins?'':'<th>Inspeção</th>'}<th>Descrição</th><th>Situação</th><th>Custo</th></tr>
-    ${marks.map(m=>`<tr><td>${m.num}</td><td>${escapeHtml(m.type)}</td><td>${m.severity}</td><td>${AV_VIEW[m.view].l}</td>${ins?'':`<td>${fmtDateBR(m.ins.date)} · ${escapeHtml(m.ins.place||'')}</td>`}<td>${escapeHtml(m.desc||'')}</td><td>${m.status==='reparada'?'Reparada'+(m.repairedAt?' em '+fmtDateBR(m.repairedAt):''):'Aberta'}</td><td>${Number(m.cost)>0?fmtMoney(m.cost):''}</td></tr>`).join('')}
+    ${marks.map(m=>`<tr><td>${m.num}</td><td>${escapeHtml(m.type)}</td><td>${m.severity}</td><td>${AV_VIEW[m.view].l}</td>${ins?'':`<td>${fmtDateBR(m.ins.date)} · ${escapeHtml(m.ins.place||'')}</td>`}<td>${escapeHtml(m.desc||'')}</td><td>${avStatusText(m)}</td><td>${Number(m.cost)>0?fmtMoney(m.cost):''}</td></tr>`).join('')}
     </table>${total>0?`<div class="meta"><b>Total de custos informados: ${fmtMoney(total)}</b></div>`:''}` : `<div class="empty">Nenhuma avaria registrada${ins?' nesta inspeção':''}.</div>`;
   const box = document.getElementById('printExport');
   box.innerHTML = html;
@@ -4386,6 +4352,234 @@ async function avImportImgs(map){
 }
 
 document.querySelector('.navbtn[data-view="avarias"]').addEventListener('click', ()=>renderAvarias());
+
+/* ============ RELATÓRIO EM PDF (escolhe o que entra) ============ */
+const RP_GROUPS = [
+  {t:'Resumo', items:[
+    {k:'resumo', l:'Dados do veículo e números principais', s:'km, gastos do mês/ano/período, consumo, km por mês, custo por km'},
+    {k:'categorias', l:'Gastos por categoria', s:'combustível, manutenção e despesas no período'},
+    {k:'vencimentos', l:'Próxima revisão e vencimentos'},
+    {k:'graficos', l:'Gráficos', s:'gastos por mês, evolução do km e preço do litro'}]},
+  {t:'Registros', items:[
+    {k:'postos', l:'Postos mais baratos'},
+    {k:'abastecimentos', l:'Abastecimentos'},
+    {k:'manutencoes', l:'Manutenções'},
+    {k:'despesas', l:'Outras despesas'},
+    {k:'kms', l:'Atualizações de km'}]},
+  {t:'FIPE', items:[
+    {k:'fipeResumo', l:'Valor FIPE e depreciação', s:'valor atual, variações, média por mês, desde a compra, projeção'},
+    {k:'fipeGrafico', l:'Gráficos da FIPE', s:'histórico com projeção e variação mês a mês'},
+    {k:'fipeRecs', l:'Recomendações'},
+    {k:'fipeEsperar', l:'Vender agora ou esperar', s:'custo de adiar a venda em 1, 3, 6 e 12 meses'},
+    {k:'fipeInvest', l:'Onde aplicar o valor do carro', s:'comparativo dos investimentos em 12 meses'},
+    {k:'fipeWatch', l:'Carros que você acompanha'}]},
+  {t:'Avarias', items:[
+    {k:'avVistas', l:'Vistas com as avarias numeradas'},
+    {k:'avLista', l:'Lista de avarias'},
+    {k:'avInsp', l:'Inspeções realizadas'}]}
+];
+const RP_PERIODS = {tudo:'Tudo', '12m':'Últimos 12 meses', ano:'Este ano', '6m':'Últimos 6 meses', '3m':'Últimos 3 meses'};
+const RP_AVF = {todas:'Todas', abertas:'Só abertas', pend:'Abertas e sem reparo'};
+const RP = {opts:null};
+function rpDefaults(){
+  const o = {period:'tudo', avFilter:'todas', cars:null};
+  RP_GROUPS.forEach(g=>g.items.forEach(it=>o[it.k] = true));
+  return o;
+}
+async function openReport(preset){
+  const saved = await dbGet('report_opts', null);
+  RP.opts = Object.assign(rpDefaults(), saved||{});
+  if(preset==='avarias'){
+    RP_GROUPS.forEach(g=>g.items.forEach(it=>RP.opts[it.k] = g.t==='Avarias'));
+    RP.opts.resumo = true;
+    RP.opts.cars = [STATE.currentCarId];
+  }
+  const ids = Object.keys(STATE.cars);
+  if(!RP.opts.cars || !RP.opts.cars.some(id=>ids.includes(id))) RP.opts.cars = ids.slice();
+  renderReportForm();
+  openOverlay('ov-report');
+}
+function renderReportForm(){
+  const o = RP.opts, ids = Object.keys(STATE.cars);
+  const chk = (k, l, s)=>`<label class="rp-row"><input type="checkbox" ${o[k]?'checked':''} onchange="RP.opts['${k}']=this.checked"><span><b>${l}</b>${s?`<small>${s}</small>`:''}</span></label>`;
+  let h = `<div class="section-title first">Veículos</div><div class="rp-box">${ids.map(id=>{
+      const c = STATE.cars[id], on = o.cars.includes(id);
+      return `<label class="rp-row"><input type="checkbox" ${on?'checked':''} onchange="rpCar('${id}', this.checked)"><span><b>${escapeHtml(`${c.info.brandLabel||''} ${c.info.model||''}`.trim())}</b><small>${escapeHtml([c.info.plate, c.info.year].filter(Boolean).join(' · '))}</small></span></label>`;
+    }).join('')}</div>
+    <div class="section-title">Período dos registros e gastos</div>
+    <div class="chip-row" id="rp-period"></div>`;
+  RP_GROUPS.forEach((g,gi)=>{
+    h += `<div class="section-title" style="display:flex;justify-content:space-between;align-items:center">${g.t}
+      <span style="text-transform:none;letter-spacing:0;font-weight:500"><a class="link" href="#" onclick="rpGroup(${gi},true);return false">todos</a> · <a class="link" href="#" onclick="rpGroup(${gi},false);return false">nenhum</a></span></div>
+      <div class="rp-box">${g.items.map(it=>chk(it.k, it.l, it.s)).join('')}</div>`;
+    if(g.t==='Avarias') h += `<div class="chip-row" id="rp-avf" style="margin-top:-8px"></div>`;
+  });
+  document.getElementById('rpBody').innerHTML = h;
+  buildChips('rp-period', Object.values(RP_PERIODS), RP_PERIODS[o.period], v=>{ o.period = Object.keys(RP_PERIODS).find(k=>RP_PERIODS[k]===v); });
+  buildChips('rp-avf', Object.values(RP_AVF), RP_AVF[o.avFilter], v=>{ o.avFilter = Object.keys(RP_AVF).find(k=>RP_AVF[k]===v); });
+}
+function rpCar(id, on){ const c = RP.opts.cars; if(on && !c.includes(id)) c.push(id); if(!on) RP.opts.cars = c.filter(x=>x!==id); }
+function rpGroup(gi, on){ RP_GROUPS[gi].items.forEach(it=>RP.opts[it.k] = on); renderReportForm(); }
+function rpAll(on){ RP_GROUPS.forEach(g=>g.items.forEach(it=>RP.opts[it.k] = on)); renderReportForm(); }
+function rpPeriodFrom(p){
+  const t = todayISO();
+  if(p==='12m') return addMonthsISO(t, -12);
+  if(p==='6m') return addMonthsISO(t, -6);
+  if(p==='3m') return addMonthsISO(t, -3);
+  if(p==='ano') return t.slice(0,4)+'-01-01';
+  return '0000-01-01';
+}
+function rpTable(head, rows){ return `<table><thead><tr>${head.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`; }
+async function generateReport(){
+  const o = RP.opts;
+  const cars = o.cars.map(id=>STATE.cars[id]).filter(Boolean);
+  if(!cars.length){ showToast('Escolha pelo menos um veículo.'); return; }
+  const any = RP_GROUPS.some(g=>g.items.some(it=>o[it.k]));
+  if(!any){ showToast('Escolha pelo menos um item.'); return; }
+  await dbSet('report_opts', o);
+  closeOverlay('ov-report');
+  showToast('Montando o relatório…');
+  const now = new Date(), from = rpPeriodFrom(o.period), to = todayISO();
+  const inP = d=>d && d>=from && d<=to;
+  const perTxt = o.period==='tudo' ? 'todo o histórico' : `${RP_PERIODS[o.period].toLowerCase()} (${fmtDateBR(from)} a ${fmtDateBR(to)})`;
+  let html = `<h1>Painel do Carro — Relatório</h1><div class="meta">Gerado em ${fmtDateBR(to)} às ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · registros e gastos: ${perTxt}</div>`;
+  for(const car of cars){
+    const info = car.info, pb = brandOf(info);
+    const logoInner = pb ? logoImgHTML(pb.slug) : `<span class="fb">${escapeHtml(brandInitials(info.brandLabel))}</span>`;
+    const odo = currentOdometer(car);
+    html += `<div class="car-block"><div class="pdf-header"><div class="pdf-logo">${logoInner}</div><div>
+      <h2 style="margin:0">${escapeHtml(info.brandLabel||'')} ${escapeHtml(info.model||'')} ${info.year?('· '+escapeHtml(info.year)):''}</h2>
+      <div class="meta">Placa: ${escapeHtml(info.plate||'-')} · Odômetro atual: ${fmtKm(odo)} km${info.purchaseDate?' · Compra: '+fmtDateBR(info.purchaseDate):''}</div></div></div>`;
+    // --- resumo ---
+    if(o.resumo){
+      const kml = avgConsumption(car), kmMes = avgKmPerMonth(car), cpk = costPerKm(car);
+      html += `<div class="pdf-cards">
+        <div class="pdf-card"><div class="l">GASTO ESTE MÊS</div><div class="v">${fmtMoney(totalSpentRange(car, to.slice(0,7)+'-01', to))}</div></div>
+        <div class="pdf-card"><div class="l">GASTO ESTE ANO</div><div class="v">${fmtMoney(totalSpentRange(car, to.slice(0,4)+'-01-01', to))}</div></div>
+        <div class="pdf-card"><div class="l">GASTO NO PERÍODO</div><div class="v">${fmtMoney(totalSpentRange(car, from, to))}</div></div>
+        <div class="pdf-card"><div class="l">GASTO TOTAL</div><div class="v">${fmtMoney(totalSpentAll(car))}</div></div>
+        <div class="pdf-card"><div class="l">GASTO MÉDIO POR MÊS</div><div class="v">${info.purchaseDate && totalSpentAll(car)>0 ? fmtMoney(totalSpentAll(car)/Math.max(1, daysBetween(info.purchaseDate, to)/30.44)) : '—'}</div></div>
+        <div class="pdf-card"><div class="l">KM POR MÊS</div><div class="v">${kmMes? fmtKm(kmMes)+' km' : '—'}</div></div>
+        <div class="pdf-card"><div class="l">CUSTO POR KM</div><div class="v">${cpk? fmtMoney(cpk.total) : '—'}</div></div>
+        <div class="pdf-card"><div class="l">KM RODADOS</div><div class="v">${fmtKm(odo-(Number(info.initialOdometer)||0))} km</div></div>
+      </div>`;
+    }
+    if(o.categorias){
+      html += `<h3>Gastos por categoria (detalhado)</h3><div class="cat-box">${buildCategoryBreakdownHTML(car, from, to).replace('Nenhum gasto registrado no período.', 'Nenhum gasto no período.')}</div>`;
+    }
+    if(o.vencimentos){
+      const rem = [revisionReminder(car), ...upcomingReminders(car)];
+      html += `<h3>Próxima revisão e vencimentos</h3><div class="pdf-reminders">${rem.slice(0,8).map(r=>`<div class="item"><div class="dot" style="background:${r.urgent?'var(--red)':r.soon?'var(--yellow)':'var(--teal)'}"></div><div><div>${escapeHtml(r.title)}</div><div class="sub">${escapeHtml(r.sub)}</div></div></div>`).join('')}</div>`;
+    }
+    if(o.graficos){
+      const km = buildKmChartSVG(car), price = buildPriceChartSVG(car);
+      html += `<h3>Gráficos</h3><div class="pdf-charts">
+        <div><div class="chart-lbl">Gastos por mês (últimos 6 meses)</div>${buildMonthBarsSVG(car)}</div>
+        <div><div class="chart-lbl">Evolução da quilometragem</div>${km || '<div class="km-chart-box"><div class="km-chart-empty">Sem dados suficientes.</div></div>'}</div></div>
+        ${price ? `<div class="pdf-charts"><div><div class="chart-lbl">Preço do litro ao longo do tempo</div>${price}</div><div></div></div>` : ''}`;
+    }
+    // --- registros ---
+    if(o.postos){
+      const rank = stationRanking({...car, fuel: car.fuel.filter(r=>inP(r.date))});
+      if(rank.length) html += `<h3>Postos por preço médio do litro</h3>` + rpTable(['#','Posto','Combustível','R$/L médio','Abastecimentos'], rank.map((s,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.fuelType)}</td><td>${fmtMoney3(s.price)}</td><td>${s.count}</td></tr>`));
+    }
+    if(o.abastecimentos){
+      const rs = car.fuel.filter(r=>inP(r.date)).sort((a,b)=>b.date.localeCompare(a.date));
+      const tot = rs.reduce((s,r)=>s+(Number(r.total)||0),0), lit = rs.reduce((s,r)=>s+(Number(r.liters)||0),0);
+      html += `<h3>Abastecimentos (${rs.length})</h3>` + (rs.length ? rpTable(['Data','Odômetro','Combustível','Litros','R$/L','Total','Posto','Cheio'], rs.map(r=>`<tr><td>${fmtDateBR(r.date)}</td><td>${fmtKm(r.odometer)}</td><td>${escapeHtml(r.fuelType||'')}</td><td>${(Number(r.liters)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td>${fmtMoney(r.liters>0?r.total/r.liters:0)}</td><td>${fmtMoney(r.total)}</td><td>${escapeHtml(r.station||'')}</td><td>${r.full?'Sim':'Não'}</td></tr>`))
+        + `<div class="meta"><b>Total: ${fmtMoney(tot)} · ${lit.toLocaleString('pt-BR',{maximumFractionDigits:1})} litros</b></div>` : `<div class="empty">Nenhum registro no período.</div>`);
+    }
+    if(o.manutencoes){
+      const rs = car.maintenance.filter(r=>inP(r.date)).sort((a,b)=>b.date.localeCompare(a.date));
+      html += `<h3>Manutenções (${rs.length})</h3>` + (rs.length ? rpTable(['Data','Odômetro','Tipo','Custo','Oficina','Obs.','Próxima em'], rs.map(r=>`<tr><td>${fmtDateBR(r.date)}</td><td>${fmtKm(r.odometer)}</td><td>${escapeHtml(r.type==='Outro'?(r.customType||'Outro'):r.type)}</td><td>${fmtMoney(r.cost)}</td><td>${escapeHtml(r.workshop||'')}</td><td>${escapeHtml(r.note||'')}</td><td>${escapeHtml([r.nextKm?fmtKm(r.nextKm)+' km':'', r.nextDate?fmtDateBR(r.nextDate):''].filter(Boolean).join(' / '))}</td></tr>`))
+        + `<div class="meta"><b>Total: ${fmtMoney(rs.reduce((s,r)=>s+(Number(r.cost)||0),0))}</b></div>` : `<div class="empty">Nenhum registro no período.</div>`);
+    }
+    if(o.despesas){
+      const rs = car.expenses.filter(r=>inP(r.date)).sort((a,b)=>b.date.localeCompare(a.date));
+      html += `<h3>Outras despesas (${rs.length})</h3>` + (rs.length ? rpTable(['Data','Categoria','Valor','Obs.','Recorrência'], rs.map(r=>`<tr><td>${fmtDateBR(r.date)}</td><td>${escapeHtml(r.category||'')}</td><td>${fmtMoney(r.value)}</td><td>${escapeHtml(r.note||'')}</td><td>${r.recurring ? escapeHtml(r.frequency||'')+(r.dueDate?' (venc. '+fmtDateBR(r.dueDate)+')':'') : '-'}</td></tr>`))
+        + `<div class="meta"><b>Total: ${fmtMoney(rs.reduce((s,r)=>s+(Number(r.value)||0),0))}</b></div>` : `<div class="empty">Nenhum registro no período.</div>`);
+    }
+    if(o.kms){
+      const rs = (car.odoUpdates||[]).filter(r=>inP(r.date)).sort((a,b)=>b.date.localeCompare(a.date));
+      if(rs.length) html += `<h3>Atualizações de km (${rs.length})</h3>` + rpTable(['Data','Odômetro'], rs.map(r=>`<tr><td>${fmtDateBR(r.date)}</td><td>${fmtKm(r.odometer)} km</td></tr>`));
+    }
+    // --- FIPE ---
+    const f = info.fipe, A = f && f.yearCode ? fipeAnalyze(f) : null;
+    const wantFipe = o.fipeResumo || o.fipeGrafico || o.fipeRecs || o.fipeEsperar || o.fipeInvest;
+    if(wantFipe){
+      if(!A) html += `<h3>FIPE</h3><div class="empty">${f && f.yearCode ? 'Sem valores da FIPE salvos ainda.' : 'Veículo não vinculado à FIPE.'}</div>`;
+      else {
+        const ctx = ownContext(car);
+        html += `<h2>FIPE</h2><div class="meta">${escapeHtml(f.modelName)} · ${escapeHtml(f.yearName||'')}${FIPE.cache[specKey(f)] && FIPE.cache[specKey(f)].codeFipe ? ' · código '+FIPE.cache[specKey(f)].codeFipe : ''} · referência ${kLabelLong(A.last.k)}</div>`;
+        if(o.fipeResumo){
+          const p12 = A.proj.length ? A.proj[12] : null;
+          html += `<div class="pdf-cards">
+            <div class="pdf-card"><div class="l">FIPE HOJE</div><div class="v">${fmtMoneyInt(A.last.price)}</div></div>
+            <div class="pdf-card"><div class="l">ÚLTIMOS 12 MESES</div><div class="v">${A.chg12 ? fmtPct(A.chg12.pct)+' ('+fmtSignedMoney(A.chg12.abs)+')' : '—'}</div></div>
+            <div class="pdf-card"><div class="l">DEPRECIAÇÃO MÉDIA</div><div class="v">${A.rProj!=null ? fmtPct(A.rProj)+'/mês' : '—'}</div></div>
+            <div class="pdf-card"><div class="l">PROJEÇÃO 12 MESES</div><div class="v">${p12 ? fmtMoneyInt(p12.price) : '—'}</div></div>
+          </div>`;
+          if(ctx.purchasePrice){ const loss = A.last.price-ctx.purchasePrice; html += `<div class="meta">Desde a compra: pago ${fmtMoneyInt(ctx.purchasePrice)}${ctx.purchaseDate?' em '+fmtDateBR(ctx.purchaseDate):''} → FIPE hoje ${fmtMoneyInt(A.last.price)} = <b>${fmtSignedMoney(loss)} (${fmtPct(loss/ctx.purchasePrice)})</b>${ctx.monthsOwned?' · média '+fmtSignedMoney(loss/ctx.monthsOwned)+'/mês':''}</div>`; }
+        }
+        if(o.fipeGrafico){
+          const hc = historyChart('rp-h-'+info.id, A, {paid:ctx.purchasePrice, purchaseK:ctx.purchaseK}).replace(/<div class="fchart-note">[\s\S]*?<\/div>/, '');
+          html += `<div class="pdf-charts"><div><div class="chart-lbl">Histórico e projeção da FIPE</div>${hc}</div><div><div class="chart-lbl">Variação mês a mês</div>${fBarsChart(A.monthly) || '<div class="km-chart-box"><div class="km-chart-empty">Sem dados suficientes.</div></div>'}</div></div>`;
+        }
+        if(o.fipeRecs){
+          const recs = fipeRecs(car, A, ctx);
+          html += `<h3>Recomendações</h3>` + (recs.length ? `<div class="pdf-reminders">${recs.map(r=>`<div class="item"><div class="dot" style="background:${FIPE_LV[r.lv]}"></div><div><div><b>${r.t}</b></div><div class="sub">${r.d}</div></div></div>`).join('')}</div>` : `<div class="empty">Sem recomendações.</div>`);
+        }
+        if(o.fipeEsperar && A.rProj!=null){
+          html += `<h3>Vender agora ou esperar (aplicando em ${escapeHtml(invRef().name)})</h3>` + rpTable(['Esperar','Desvalorização','Rendimento que deixa de ter','Manutenção e despesas','Custo total'], waitCosts(A, ctx).map(w=>`<tr><td>${w.n} ${w.n===1?'mês':'meses'}</td><td>${fmtMoneyInt(w.dep)}</td><td>${fmtMoneyInt(w.opp)}</td><td>${fmtMoneyInt(w.fix)}</td><td><b>${fmtMoneyInt(w.total)}</b></td></tr>`));
+        }
+        if(o.fipeInvest){
+          const P = A.last.price, L = invList().slice().sort((a,b)=>invNet(b,12)-invNet(a,12));
+          html += `<h3>Onde aplicar o valor do carro (12 meses)</h3>` + rpTable(['Investimento','Bruto a.a.','IR','Líquido em 12 meses','Rendimento sobre '+fmtMoneyInt(P)], L.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${fmtPct2(invGross(x)/100)}</td><td>${invIR(x,12) ? invIR(x,12).toLocaleString('pt-BR')+'%' : 'isento'}</td><td>${fmtPct2(invNet(x,12))}</td><td>${fmtMoneyInt(P*invNet(x,12))}</td></tr>`))
+            + `<div class="meta">CDI considerado: ${Number(FIPE.settings.cdi).toLocaleString('pt-BR')}% a.a. Não é recomendação de investimento.</div>`;
+        }
+      }
+    }
+    // --- avarias ---
+    if(o.avVistas || o.avLista || o.avInsp){
+      html += `<h2>Avarias</h2>`;
+      if(!car.ficha) html += `<div class="empty">Ficha de inspeção não criada para este veículo.</div>`;
+      else {
+        const okF = m=>o.avFilter==='todas' || (o.avFilter==='abertas' ? avSt(m)==='aberta' : avSt(m)!=='reparada');
+        const marks = avAllMarks(car).filter(okF);
+        const all = avAllMarks(car);
+        html += `<div class="meta">${all.filter(m=>avSt(m)==='aberta').length} abertas · ${all.filter(m=>avSt(m)==='reparada').length} reparadas · ${all.filter(m=>avSt(m)==='semreparo').length} sem necessidade de reparo · mostrando: ${RP_AVF[o.avFilter].toLowerCase()}</div>`;
+        if(o.avVistas){
+          const imgs = await avLoadImgs(info.id);
+          if(imgs){
+            const dv = k=>avDrawViewHTML(imgs, k, marks);
+            html += `<div class="av-pdf-row">${dv('front')}${dv('rear')}</div><div class="av-pdf-row">${dv('left')}</div><div class="av-pdf-row">${dv('right')}</div><div class="av-pdf-row"><div style="flex:0.25"></div>${dv('top')}<div style="flex:0.25"></div></div>`;
+          } else html += `<div class="empty">Imagens da ficha não encontradas neste aparelho.</div>`;
+        }
+        if(o.avLista){
+          const tot = marks.filter(m=>avSt(m)==='aberta').reduce((s,m)=>s+(Number(m.cost)||0),0);
+          html += `<h3>Lista de avarias (${marks.length})</h3>` + (marks.length ? rpTable(['#','Tipo','Gravidade','Vista','Inspeção','Descrição','Situação','Custo'], marks.map(m=>`<tr><td>${m.num}</td><td>${escapeHtml(m.type)}</td><td>${m.severity}</td><td>${AV_VIEW[m.view].l}</td><td>${fmtDateBR(m.ins.date)} · ${escapeHtml(m.ins.place||'')}</td><td>${escapeHtml(m.desc||'')}</td><td>${avStatusText(m)}</td><td>${Number(m.cost)>0?fmtMoney(m.cost):''}</td></tr>`))
+            + (tot>0 ? `<div class="meta"><b>Reparos pendentes (abertas com custo informado): ${fmtMoney(tot)}</b></div>` : '') : `<div class="empty">Nenhuma avaria.</div>`);
+        }
+        if(o.avInsp){
+          const ins = avInsps(car).slice().reverse();
+          html += `<h3>Inspeções (${ins.length})</h3>` + (ins.length ? rpTable(['Data','Onde / motivo','Avarias marcadas','Custos informados','Observações'], ins.map(i=>`<tr><td>${fmtDateBR(i.date)}</td><td>${escapeHtml(avPlaceLabel(i))}</td><td>${i.marks.length}</td><td>${(()=>{ const c = i.marks.reduce((s,m)=>s+(Number(m.cost)||0),0); return c>0?fmtMoney(c):''; })()}</td><td>${escapeHtml(i.note||'')}</td></tr>`)) : `<div class="empty">Nenhuma inspeção.</div>`);
+        }
+      }
+    }
+    html += `</div>`;
+  }
+  if(o.fipeWatch && FIPE.watch.length){
+    html += `<div class="car-block"><h2>Carros que você acompanha (FIPE)</h2>` + rpTable(['Carro','Ano','FIPE hoje','Média por mês','Últimos 12 meses','Projeção 12 meses'], FIPE.watch.map(w=>{
+      const A = fipeAnalyze(w);
+      return `<tr><td>${escapeHtml(w.nickname || fipeSpecName(w))}</td><td>${escapeHtml(w.yearName||'')}</td><td>${A?fmtMoneyInt(A.last.price):'—'}</td><td>${A&&A.rProj!=null?fmtPct(A.rProj):'—'}</td><td>${A&&A.chg12?fmtPct(A.chg12.pct):'—'}</td><td>${A&&A.proj.length?fmtMoneyInt(A.proj[12].price):'—'}</td></tr>`;
+    })) + `</div>`;
+  }
+  const box = document.getElementById('printExport');
+  box.innerHTML = html;
+  const imgs = [...box.querySelectorAll('img')];
+  await Promise.all(imgs.map(i=>i.complete ? null : new Promise(r=>{ i.onload = r; i.onerror = r; })));
+  setTimeout(()=>window.print(), 120);
+}
 
 /* ============ INIT ============ */
 /* ============ APP INSTALÁVEL (PWA) ============ */
