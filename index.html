@@ -2107,11 +2107,14 @@ function fipeErr(code, detail, status){ const e = new Error(detail); e.code = co
 async function fipeGetFrom(base, path){
   const headers = FIPE.settings.token ? {'X-Subscription-Token': FIPE.settings.token.trim()} : {};
   let res;
-  try{ res = await fetch(base + path, {headers}); }
+  const ctl = new AbortController();
+  const timer = setTimeout(()=>ctl.abort(), 10000);
+  try{ res = await fetch(base + path, {headers, signal:ctl.signal}); }
   catch(e){
     if(navigator.onLine===false) throw fipeErr('offline', 'sem internet');
+    if(ctl.signal.aborted) throw fipeErr('timeout', 'a API da FIPE demorou demais para responder');
     throw fipeErr('network', 'conexão recusada pelo navegador (bloqueio de rede, extensão ou CORS)');
-  }
+  }finally{ clearTimeout(timer); }
   if(res.status===429) throw fipeErr('limit', 'HTTP 429', 429);
   if(!res.ok){
     let body = ''; try{ body = (await res.text()).slice(0,80).replace(/\s+/g,' '); }catch(e){}
@@ -2130,7 +2133,8 @@ async function fipeGet(path){
       FIPE.hostOk = base; FIPE.offline = false; FIPE.lastError = null;
       return d;
     }catch(e){
-      lastErr = e;
+      // mostra o erro mais informativo: uma resposta da API vale mais que a falha de conexão do endereço reserva
+      if(!lastErr || (lastErr.code!=='http' && e.code==='http') || e.code==='limit' || e.code==='offline') lastErr = e;
       // 400/404 = mês ou item que não existe na FIPE (resposta válida); limite e sem internet valem para os dois endereços
       if(e.code==='offline' || e.code==='limit' || (e.code==='http' && (e.status===400 || e.status===404))) break;
     }
@@ -2160,14 +2164,43 @@ async function ensureRefs(force){
     if(list.length){ FIPE.refs = {list, fetchedAt:Date.now()}; await dbSet('fipe_refs', FIPE.refs); }
   }catch(e){
     if(e.code==='offline') FIPE.offline = true;
-    if(!FIPE.refs) throw e;
+    if(!FIPE.refs || FIPE.refs.synthetic){
+      // a lista de meses da API às vezes trava: calcula os códigos (sequenciais nos últimos anos; 339 = novembro/2026)
+      // e confirma o mês real pelo campo referenceMonth de cada preço que chegar
+      FIPE.refs = {list:syntheticRefs(), fetchedAt:Date.now()-11*3600e3, synthetic:true};
+    }
   }
   return FIPE.refs.list;
 }
+function syntheticRefs(){
+  const now = new Date(), kNow = ymKey(now.getFullYear(), now.getMonth()+1), anchorK = ymKey(2026,11);
+  const list = [];
+  for(let k=kNow; k>kNow-60; k--) list.push({code:String(339 + (k-anchorK)), k});
+  return list;
+}
 async function fipeList(path){
   if(FIPE.lists[path]) return FIPE.lists[path];
-  const data = fipeArr(await fipeGet(path));
+  const saved = await dbGet('fipe_lists', {});
+  if(saved[path] && Date.now()-saved[path].at < 20*86400e3){ FIPE.lists[path] = saved[path].data; return saved[path].data; }
+  // não espera a lista de meses (às vezes trava): usa a salva ou a calculada e atualiza em segundo plano
+  const codes = (FIPE.refs ? FIPE.refs.list : syntheticRefs()).slice(0,3).map(r=>r.code);
+  if(!FIPE.refs || FIPE.refs.synthetic) ensureRefs().catch(()=>{});
+  // a API só consegue montar listas de meses que ela já guardou; pede vários meses em paralelo e usa o primeiro que vier
+  const tries = codes.map(c=>path+'?reference='+c).concat([path]);
+  let data;
+  try{
+    data = await Promise.any(tries.map(async t=>{ const d = fipeArr(await fipeGet(t)); if(!d.length) throw fipeErr('format','lista vazia'); return d; }));
+  }catch(agg){
+    const errs = (agg.errors||[agg]);
+    throw errs.find(e=>e.code==='offline') || errs.find(e=>e.code==='limit') || errs[errs.length-1];
+  }
   FIPE.lists[path] = data;
+  try{
+    saved[path] = {at:Date.now(), data};
+    const keys = Object.keys(saved).sort((a,b)=>saved[b].at-saved[a].at);
+    keys.slice(15).forEach(k=>delete saved[k]);
+    await dbSet('fipe_lists', saved);
+  }catch(e){}
   return data;
 }
 
@@ -2177,6 +2210,7 @@ function specPath(s){ return `/${s.type||'cars'}/brands/${s.brandCode}/models/${
 function fipeErrMsg(e){
   if(e.code==='limit') return 'Limite diário de consultas da API FIPE atingido. Os meses que faltam serão buscados amanhã (ou adicione um token grátis nos ajustes).';
   if(e.code==='offline') return 'Sem internet: mostrando os dados já salvos no celular.';
+  if(e.code==='partial') return escapeHtml(e.detail);
   return `Não foi possível consultar a FIPE (${escapeHtml(e.detail||e.message||'erro desconhecido')}).`;
 }
 function loadSeries(spec, extraKeys, force){
@@ -2195,12 +2229,13 @@ function loadSeries(spec, extraKeys, force){
     const todo = wanted.filter(r=>{
       if(r.code in c.prices) return false;
       if(!(r.code in c.missing)) return true;
-      return newest2.includes(r.code) && (force || Date.now()-c.missing[r.code] > 12*3600e3);
+      const age = Date.now()-c.missing[r.code];
+      return force || age > (newest2.includes(r.code) ? 12*3600e3 : 3*86400e3);
     });
     st.total = todo.length;
     if(!todo.length) return;
     renderFipeSoon();
-    let hadSuccess = Object.keys(c.prices).length>0;
+    let hadSuccess = Object.keys(c.prices).length>0, transient = 0, lastTransient = null;
     for(let i=0; i<todo.length; i+=4){
       const batch = todo.slice(i, i+4);
       const results = await Promise.all(batch.map(async r=>{
@@ -2209,18 +2244,21 @@ function loadSeries(spec, extraKeys, force){
           const price = parseFipePrice(d && d.price);
           if(price){
             c.prices[r.code] = price; delete c.missing[r.code];
+            const ref = parseRefMonth(d.referenceMonth);
+            if(ref){ (c.kOf || (c.kOf = {}))[r.code] = ymKey(ref.y, ref.m); }
             if(d.codeFipe) c.codeFipe = d.codeFipe;
             return 'ok';
           }
           c.missing[r.code] = Date.now(); return 'miss';
         }catch(e){
-          if(e.code==='http' && e.status>=400 && e.status<500){ c.missing[r.code] = Date.now(); return 'miss'; }
-          throw e;
+          if(e.code==='http' && (e.status===400 || e.status===404)){ c.missing[r.code] = Date.now(); return 'miss'; }
+          if(e.code==='offline' || e.code==='limit') throw e;
+          transient++; lastTransient = e; return 'skip';   // API instável: tenta esse mês de novo na próxima atualização
         }finally{ st.done++; }
       }));
       fipeSaveCache(); renderFipeSoon();
       if(results.includes('ok')) hadSuccess = true;
-      else if(hadSuccess || i>=8){
+      else if(results.every(x=>x==='miss') && (hadSuccess || i>=8)){
         // chegou antes do lançamento desse ano-modelo: os meses mais antigos também não existem
         todo.slice(i+4).forEach(r=>{ c.missing[r.code] = Date.now(); });
         break;
@@ -2228,6 +2266,10 @@ function loadSeries(spec, extraKeys, force){
     }
     c.updatedAt = Date.now();
     fipeSaveCache();
+    if(transient){
+      const e = fipeErr('partial', `${transient} ${transient===1?'mês não veio':'meses não vieram'} porque a API da FIPE está instável (${lastTransient.detail}). Toque em "Atualizar dados da FIPE" mais tarde para completar.`);
+      throw e;
+    }
   })().then(()=>{ delete FIPE.errors[key]; })
     .catch(e=>{ FIPE.errors[key] = fipeErrMsg(e); })
     .finally(()=>{ delete FIPE.loading[key]; renderFipeSoon(); });
@@ -2238,8 +2280,8 @@ function getSeries(spec){
   if(!c || !FIPE.refs) return [];
   const byCode = {};
   FIPE.refs.list.forEach(r=>byCode[r.code] = r.k);
-  return Object.entries(c.prices).filter(([code])=>byCode[code]!=null)
-    .map(([code, price])=>({k:byCode[code], price})).sort((a,b)=>a.k-b.k);
+  return Object.entries(c.prices).filter(([code])=>byCode[code]!=null || (c.kOf && c.kOf[code]!=null))
+    .map(([code, price])=>({k:(c.kOf && c.kOf[code]!=null) ? c.kOf[code] : byCode[code], price})).sort((a,b)=>a.k-b.k);
 }
 function ownSpecs(){
   return Object.values(STATE.cars).filter(c=>c.info.fipe && c.info.fipe.yearCode);
@@ -2754,10 +2796,11 @@ function refreshFipeForm(){
     if(A){ pv.innerHTML = `FIPE ${kLabel(A.last.k)}: <b style="color:var(--text)">${fmtMoneyInt(A.last.price)}</b>`; return; }
     pv.textContent = 'Consultando valor atual…';
     const want = FP.year.code;
-    fipeGet(specPath(spec)).then(d=>{
+    const codes = FIPE.refs ? FIPE.refs.list.slice(0,2).map(r=>r.code) : [];
+    Promise.any(codes.map(c=>fipeGet(specPath(spec)+'?reference='+c)).concat([fipeGet(specPath(spec))])).then(d=>{
       if(!FP.year || FP.year.code!==want) return;
       pv.innerHTML = `FIPE atual (${escapeHtml(d.referenceMonth||'')}): <b style="color:var(--text)">${escapeHtml(d.price||'—')}</b>${d.codeFipe?' · cód. '+escapeHtml(d.codeFipe):''}`;
-    }).catch(e=>{ if(FP.year && FP.year.code===want) pv.textContent = e.code==='offline' ? 'Sem internet para consultar agora.' : ''; });
+    }).catch(()=>{ if(FP.year && FP.year.code===want) pv.textContent = navigator.onLine===false ? 'Sem internet para consultar agora.' : 'A FIPE não respondeu agora; o histórico será buscado ao salvar.'; });
   }
 }
 async function fipePick(step){
@@ -2897,7 +2940,8 @@ async function fipeTestConn(){
   const out = [];
   for(const base of FIPE_HOSTS){
     const host = base.replace('https://','').split('/')[0];
-    try{ const d = fipeArr(await fipeGetFrom(base, '/cars/brands')); out.push(`${host}: ok (${d.length} marcas)`); }
+    const ref = FIPE.refs && FIPE.refs.list[1] ? '?reference='+FIPE.refs.list[1].code : '';
+    try{ const d = fipeArr(await fipeGetFrom(base, '/cars/brands'+ref)); out.push(`${host}: ok (${d.length} marcas)`); }
     catch(e){ out.push(`${host}: ${e.detail||e.message}`); }
   }
   sub.textContent = out.join(' · ');
