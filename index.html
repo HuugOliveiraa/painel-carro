@@ -2101,16 +2101,44 @@ function fipeSpecName(s){ return `${fipeBrandShort(s.brandName)} ${s.modelName}`
 function fipeSpecShort(s){ const m = String(s.modelName||'').split(' ').slice(0,2).join(' '); return `${fipeBrandShort(s.brandName)} ${m}`.trim(); }
 
 /* --- API --- */
-async function fipeGet(path){
+// a mesma API responde em dois endereços; se um falhar (rede, bloqueio, erro do servidor) tenta o outro
+const FIPE_HOSTS = [FIPE_BASE, 'https://parallelum.com.br/fipe/api/v2'];
+function fipeErr(code, detail, status){ const e = new Error(detail); e.code = code; e.detail = detail; if(status) e.status = status; return e; }
+async function fipeGetFrom(base, path){
   const headers = FIPE.settings.token ? {'X-Subscription-Token': FIPE.settings.token.trim()} : {};
   let res;
-  try{ res = await fetch(FIPE_BASE + path, {headers}); }
-  catch(e){ const err = new Error('offline'); err.code = 'offline'; throw err; }
-  if(res.status===429){ const err = new Error('limit'); err.code = 'limit'; throw err; }
-  if(!res.ok){ const err = new Error('http '+res.status); err.code = 'http'; err.status = res.status; throw err; }
-  FIPE.offline = false;
-  return res.json();
+  try{ res = await fetch(base + path, {headers}); }
+  catch(e){
+    if(navigator.onLine===false) throw fipeErr('offline', 'sem internet');
+    throw fipeErr('network', 'conexão recusada pelo navegador (bloqueio de rede, extensão ou CORS)');
+  }
+  if(res.status===429) throw fipeErr('limit', 'HTTP 429', 429);
+  if(!res.ok){
+    let body = ''; try{ body = (await res.text()).slice(0,80).replace(/\s+/g,' '); }catch(e){}
+    throw fipeErr('http', `HTTP ${res.status}${body ? ': '+body : ''}`, res.status);
+  }
+  const text = await res.text();
+  try{ return JSON.parse(text); }
+  catch(e){ throw fipeErr('format', 'resposta não é JSON: '+text.slice(0,60).replace(/\s+/g,' ')); }
 }
+async function fipeGet(path){
+  const order = FIPE.hostOk ? [FIPE.hostOk, ...FIPE_HOSTS.filter(h=>h!==FIPE.hostOk)] : FIPE_HOSTS;
+  let lastErr;
+  for(const base of order){
+    try{
+      const d = await fipeGetFrom(base, path);
+      FIPE.hostOk = base; FIPE.offline = false; FIPE.lastError = null;
+      return d;
+    }catch(e){
+      lastErr = e;
+      // 400/404 = mês ou item que não existe na FIPE (resposta válida); limite e sem internet valem para os dois endereços
+      if(e.code==='offline' || e.code==='limit' || (e.code==='http' && (e.status===400 || e.status===404))) break;
+    }
+  }
+  if(lastErr.code!=='http' || (lastErr.status!==400 && lastErr.status!==404)) FIPE.lastError = lastErr.detail;
+  throw lastErr;
+}
+function fipeArr(d){ if(Array.isArray(d)) return d; throw fipeErr('format', 'resposta inesperada: '+JSON.stringify(d).slice(0,80)); }
 function parseFipePrice(s){
   if(typeof s==='number') return s>0 ? s : null;
   const n = Number(String(s||'').replace(/[^\d,]/g,'').replace(',','.'));
@@ -2126,7 +2154,7 @@ async function ensureRefs(force){
   const fresh = FIPE.refs && (Date.now()-FIPE.refs.fetchedAt < 12*3600e3);
   if(fresh && !force) return FIPE.refs.list;
   try{
-    const data = await fipeGet('/references');
+    const data = fipeArr(await fipeGet('/references'));
     const list = data.map(r=>{ const p = parseRefMonth(r.month); return p ? {code:String(r.code), k:ymKey(p.y,p.m)} : null; })
       .filter(Boolean).sort((a,b)=>b.k-a.k);
     if(list.length){ FIPE.refs = {list, fetchedAt:Date.now()}; await dbSet('fipe_refs', FIPE.refs); }
@@ -2138,7 +2166,7 @@ async function ensureRefs(force){
 }
 async function fipeList(path){
   if(FIPE.lists[path]) return FIPE.lists[path];
-  const data = await fipeGet(path);
+  const data = fipeArr(await fipeGet(path));
   FIPE.lists[path] = data;
   return data;
 }
@@ -2149,7 +2177,7 @@ function specPath(s){ return `/${s.type||'cars'}/brands/${s.brandCode}/models/${
 function fipeErrMsg(e){
   if(e.code==='limit') return 'Limite diário de consultas da API FIPE atingido. Os meses que faltam serão buscados amanhã (ou adicione um token grátis nos ajustes).';
   if(e.code==='offline') return 'Sem internet: mostrando os dados já salvos no celular.';
-  return 'A API da FIPE não respondeu agora. Tente atualizar mais tarde.';
+  return `Não foi possível consultar a FIPE (${escapeHtml(e.detail||e.message||'erro desconhecido')}).`;
 }
 function loadSeries(spec, extraKeys, force){
   const key = specKey(spec);
@@ -2221,7 +2249,7 @@ async function fipeSync(force){
   ownSpecs().forEach(car=>jobs.push([car.info.fipe, car.info.purchaseDate ? [isoToK(car.info.purchaseDate)] : []]));
   FIPE.watch.forEach(w=>jobs.push([w, []]));
   if(!jobs.length) return;
-  try{ await ensureRefs(force); }catch(e){ FIPE.offline = true; renderFipeSoon(); return; }
+  try{ await ensureRefs(force); }catch(e){ FIPE.offline = e.code==='offline'; renderFipeSoon(); return; }
   for(const [spec, extra] of jobs){ await loadSeries(spec, extra, force); } // um por vez, para poupar o limite diário
   FIPE.lastSync = Date.now();
   renderFipeSoon();
@@ -2593,7 +2621,8 @@ function renderFipeSettingsBox(){
   document.getElementById('fipeSettingsBox').innerHTML = `
     <div class="settings-item" onclick="openFipeSettings()"><div><div class="ttl">Comparação com o CDI</div><div class="sub">${Number(s.cdi).toLocaleString('pt-BR')}% a.a. · ${s.cdiPct}% do CDI · IR ${Number(s.ir).toLocaleString('pt-BR')}% → ${(i*100).toLocaleString('pt-BR',{maximumFractionDigits:2})}%/mês líquido</div></div><span class="arrow">›</span></div>
     <div class="settings-item" onclick="openFipeSettings()"><div><div class="ttl">Período do histórico</div><div class="sub">${s.months} meses${s.token?' · com token da API':''}</div></div><span class="arrow">›</span></div>
-    <div class="settings-item" onclick="fipeSync(true); showToast('Atualizando dados da FIPE…')"><div><div class="ttl">Atualizar dados da FIPE</div><div class="sub">${synced}</div></div><span class="arrow">⟳</span></div>`;
+    <div class="settings-item" onclick="fipeSync(true); showToast('Atualizando dados da FIPE…')"><div><div class="ttl">Atualizar dados da FIPE</div><div class="sub">${synced}</div></div><span class="arrow">⟳</span></div>
+    <div class="settings-item" onclick="fipeTestConn()"><div><div class="ttl">Testar conexão com a FIPE</div><div class="sub" id="fipeTestSub">${FIPE.lastError ? 'Último erro: '+escapeHtml(FIPE.lastError) : 'Mostra o motivo exato se algo falhar'}</div></div><span class="arrow">›</span></div>`;
 }
 function renderFipeAlert(){
   const el = document.getElementById('fipeAlert');
@@ -2753,7 +2782,8 @@ async function fipePick(step){
     if(step==='year') FP.pickItems.sort((a,b)=>b.name.localeCompare(a.name));
     renderPickList();
   }catch(e){
-    document.getElementById('pickList').innerHTML = `<div class="info">${e.code==='offline' ? 'Sem internet. Conecte-se para escolher na lista da FIPE.' : e.code==='limit' ? 'Limite diário da API FIPE atingido. Tente amanhã.' : 'Não foi possível carregar a lista da FIPE agora.'}</div>`;
+    document.getElementById('pickList').innerHTML = `<div class="info">${e.code==='offline' ? 'Sem internet. Conecte-se para escolher na lista da FIPE.' : e.code==='limit' ? 'Limite diário da API FIPE atingido. Tente amanhã.' : 'Não foi possível carregar a lista da FIPE.<br><br><b style="color:var(--text)">Motivo:</b> '+escapeHtml(e.detail||e.message||'erro desconhecido')}</div>
+      <button class="btn-ghost" onclick="fipePick('${step}')">Tentar de novo</button>`;
   }
 }
 function renderPickList(){
@@ -2860,6 +2890,18 @@ function fipeAutoCDI(){
   if(!s.cdiUpdatedAt || Date.now()-s.cdiUpdatedAt > 7*86400e3) fetchCDI(false);
 }
 document.querySelector('.navbtn[data-view="fipe"]').addEventListener('click', ()=>fipeSync());
+
+async function fipeTestConn(){
+  const sub = document.getElementById('fipeTestSub');
+  sub.textContent = 'Testando…';
+  const out = [];
+  for(const base of FIPE_HOSTS){
+    const host = base.replace('https://','').split('/')[0];
+    try{ const d = fipeArr(await fipeGetFrom(base, '/cars/brands')); out.push(`${host}: ok (${d.length} marcas)`); }
+    catch(e){ out.push(`${host}: ${e.detail||e.message}`); }
+  }
+  sub.textContent = out.join(' · ');
+}
 
 /* ============ INIT ============ */
 /* ============ APP INSTALÁVEL (PWA) ============ */
