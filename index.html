@@ -356,7 +356,7 @@ a.link{color:var(--teal);}
 @keyframes avpop{from{transform:scale(0.3);} to{transform:scale(1);}}
 .av-zoom{position:absolute; right:8px; bottom:8px; display:flex; gap:4px; z-index:3;}
 .av-zoom button{width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:rgba(33,34,39,0.92); color:var(--text); font-size:17px; cursor:pointer;}
-.av-3d{height:52vh; min-height:300px; position:relative; touch-action:none;}
+.av-3d{height:52vh; min-height:300px; position:relative; touch-action:none; background:radial-gradient(ellipse at 50% 45%, #363944 0%, #24262c 58%, #1a1b20 100%);}
 .av-3d canvas{display:block; width:100%; height:100%;}
 .av-3d .msg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; color:var(--text-dim); font-size:13px;}
 .av-hint{font-size:11.5px; color:var(--text-dim); margin:-4px 0 12px; line-height:1.5;}
@@ -3480,75 +3480,238 @@ function avAssign(regions){
 }
 
 /* --- 3D a partir das silhuetas (casco visual) --- */
-function avBuildHull(views){
-  const mk = {};
-  AV_VIEWS.forEach(v=>{ if(views[v.k]) mk[v.k] = avMask(views[v.k], 240); });
-  if(!mk.left && !mk.right) return null;
-  const side = mk.left || mk.right, fr = mk.front || mk.rear, tp = mk.top;
-  const asp = m=>m.h/m.w;
-  const H = ((mk.left?asp(mk.left):0) + (mk.right?asp(mk.right):0)) / ((mk.left?1:0)+(mk.right?1:0));
-  const L = 1;
+// Cada vista vira um campo de distância assinada (negativo dentro do carro). O 3D é a interseção
+// das três extrusões (lateral, frente/traseira, teto), com as arestas arredondadas por um "máximo suave".
+// Distâncias (em vez de máscaras borradas) deixam a superfície lisa e no lugar certo.
+function avEDT1(f, n, d, v, z){
+  // transformada de distância 1D (Felzenszwalb & Huttenlocher): d[q] = min_p (q-p)² + f[p]
+  let k = 0; v[0] = 0; z[0] = -Infinity; z[1] = Infinity;
+  for(let q=1; q<n; q++){
+    let s = ((f[q]+q*q) - (f[v[k]]+v[k]*v[k])) / (2*q - 2*v[k]);
+    while(s <= z[k]){ k--; s = ((f[q]+q*q) - (f[v[k]]+v[k]*v[k])) / (2*q - 2*v[k]); }
+    k++; v[k] = q; z[k] = s; z[k+1] = Infinity;
+  }
+  k = 0;
+  for(let q=0; q<n; q++){ while(z[k+1] < q) k++; const t = q-v[k]; d[q] = t*t + f[v[k]]; }
+}
+function avEDT(mask, w, h, target){
+  // distância (em pixels) de cada pixel até o pixel mais próximo com mask == target
+  const INF = 1e20, n = Math.max(w, h);
+  const f = new Float64Array(n), d = new Float64Array(n), v = new Int32Array(n), z = new Float64Array(n+1);
+  const g = new Float64Array(w*h), out = new Float32Array(w*h);
+  for(let x=0; x<w; x++){
+    for(let y=0; y<h; y++) f[y] = mask[y*w+x]===target ? 0 : INF;
+    avEDT1(f, h, d, v, z);
+    for(let y=0; y<h; y++) g[y*w+x] = d[y];
+  }
+  for(let y=0; y<h; y++){
+    for(let x=0; x<w; x++) f[x] = g[y*w+x];
+    avEDT1(f, w, d, v, z);
+    for(let x=0; x<w; x++) out[y*w+x] = Math.sqrt(d[x]);
+  }
+  return out;
+}
+function avSDF(src, maxLong, prep){
+  const s = avSolid(src, maxLong);
+  const m = prep ? prep(s.m, s.w, s.h) : s.m;
+  const P = 8, W = s.w+2*P, H = s.h+2*P, pm = new Uint8Array(W*H);
+  for(let y=0; y<s.h; y++) for(let x=0; x<s.w; x++) pm[(y+P)*W+x+P] = m[y*s.w+x];
+  const toIn = avEDT(pm, W, H, 1), toOut = avEDT(pm, W, H, 0), sd = new Float32Array(W*H);
+  for(let i=0; i<W*H; i++) sd[i] = pm[i] ? -(toOut[i]-0.5) : (toIn[i]-0.5);
+  return {w:s.w, h:s.h, W, H, P, sd};
+}
+function avSD(o, u, v){
+  // distância (pixels) no ponto (u,v) da vista, 0..1; fora da imagem soma o que passou da borda
+  let x = o.P + u*o.w - 0.5, y = o.P + v*o.h - 0.5, extra = 0;
+  if(x < 0){ extra -= x; x = 0; } else if(x > o.W-1){ extra += x-(o.W-1); x = o.W-1; }
+  if(y < 0){ extra -= y; y = 0; } else if(y > o.H-1){ extra += y-(o.H-1); y = o.H-1; }
+  const x0 = Math.min(o.W-2, Math.floor(x)), y0 = Math.min(o.H-2, Math.floor(y)), fx = x-x0, fy = y-y0, i = y0*o.W+x0, sd = o.sd;
+  return (sd[i]*(1-fx) + sd[i+1]*fx)*(1-fy) + (sd[i+o.W]*(1-fx) + sd[i+o.W+1]*fx)*fy + extra;
+}
+// teto: deixa a planta simétrica e tira os retrovisores (senão a lateral "incha" em toda a altura naquele trecho)
+function avPlanPrep(m, w, h){
+  const cx = (w-1)/2, hw = new Float32Array(h);
+  for(let y=0; y<h; y++){ let mx = -1; for(let x=0; x<w; x++) if(m[y*w+x]){ const d = Math.abs(x-cx); if(d>mx) mx = d; } hw[y] = mx>=0 ? mx+0.5 : 0; }
+  const r = Math.max(2, Math.round(h*0.045));   // abertura 1D: some com saliências mais curtas que ~9% do comprimento
+  const er = new Float32Array(h), op = new Float32Array(h);
+  for(let y=0; y<h; y++){ let mn = Infinity; for(let k=-r; k<=r; k++){ const yy = y+k; const val = (yy<0 || yy>=h) ? 0 : hw[yy]; if(val<mn) mn = val; } er[y] = mn; }
+  for(let y=0; y<h; y++){ let mx = 0; for(let k=-r; k<=r; k++){ const yy = y+k; if(yy>=0 && yy<h && er[yy]>mx) mx = er[yy]; } op[y] = mx; }
+  const out = new Uint8Array(w*h);
+  for(let y=0; y<h; y++){ const lim = Math.min(hw[y], op[y]); if(lim<=0) continue; for(let x=0; x<w; x++) if(Math.abs(x-cx) <= lim) out[y*w+x] = 1; }
+  return out;
+}
+// frente/traseira: apara os retrovisores (saliências curtas na altura) sem fechar o vão entre os pneus
+function avFrontPrep(m, w, h){
+  const cx = (w-1)/2, hw = new Float32Array(h);
+  for(let y=0; y<h; y++){ let mx = -1; for(let x=0; x<w; x++) if(m[y*w+x]){ const d = Math.abs(x-cx); if(d>mx) mx = d; } hw[y] = mx>=0 ? mx+0.5 : 0; }
+  const r = Math.max(2, Math.round(h*0.07));
+  const er = new Float32Array(h), op = new Float32Array(h);
+  for(let y=0; y<h; y++){ let mn = Infinity; for(let k=-r; k<=r; k++){ const yy = y+k; const val = (yy<0 || yy>=h) ? 0 : hw[yy]; if(val<mn) mn = val; } er[y] = mn; }
+  for(let y=0; y<h; y++){ let mx = 0; for(let k=-r; k<=r; k++){ const yy = y+k; if(yy>=0 && yy<h && er[yy]>mx) mx = er[yy]; } op[y] = mx; }
+  const out = new Uint8Array(w*h);
+  for(let y=0; y<h; y++) for(let x=0; x<w; x++) if(m[y*w+x] && Math.abs(x-cx) <= op[y]+0.5) out[y*w+x] = 1;
+  return out;
+}
+// lateral: apara picos estreitos no perfil de cima (retrovisor desenhado acima do capô, antena)
+function avSidePrep(m, w, h){
+  const ht = new Float32Array(w);
+  for(let x=0; x<w; x++){ let t = -1; for(let y=0; y<h; y++) if(m[y*w+x]){ t = y; break; } ht[x] = t>=0 ? h-t : 0; }
+  const r = Math.max(2, Math.round(w*0.035));
+  const er = new Float32Array(w), op = new Float32Array(w);
+  for(let x=0; x<w; x++){ let mn = Infinity; for(let k=-r; k<=r; k++){ const xx = x+k; const val = (xx<0 || xx>=w) ? 0 : ht[xx]; if(val<mn) mn = val; } er[x] = mn; }
+  for(let x=0; x<w; x++){ let mx = 0; for(let k=-r; k<=r; k++){ const xx = x+k; if(xx>=0 && xx<w && er[xx]>mx) mx = er[xx]; } op[x] = mx; }
+  const out = new Uint8Array(w*h);
+  for(let y=0; y<h; y++) for(let x=0; x<w; x++) if(m[y*w+x] && (h-y) <= op[x]+0.5) out[y*w+x] = 1;
+  return out;
+}
+async function avBuildHull(views, onStep){
+  const tick = async t=>{ if(onStep) onStep(t); await new Promise(r=>setTimeout(r, 0)); };
+  const sd = {};
+  if(views.left) sd.left = avSDF(views.left, 480, avSidePrep);
+  if(views.right) sd.right = avSDF(views.right, 480, avSidePrep);
+  if(!sd.left && !sd.right) return null;
+  if(views.front) sd.front = avSDF(views.front, 320, avFrontPrep);
+  if(views.rear) sd.rear = avSDF(views.rear, 320, avFrontPrep);
+  if(views.top) sd.top = avSDF(views.top, 480, avPlanPrep);
+  await tick('silhuetas');
+  const sides = [sd.left, sd.right].filter(Boolean), frs = [sd.front, sd.rear].filter(Boolean);
+  const L = 1, H = sides.reduce((a,o)=>a+o.h/o.w, 0)/sides.length;
   const ws = [];
-  if(fr){ const f = ((mk.front?mk.front.w/mk.front.h:0)+(mk.rear?mk.rear.w/mk.rear.h:0))/((mk.front?1:0)+(mk.rear?1:0)); ws.push(f*H); }
-  if(tp) ws.push(tp.w/tp.h * L);
-  const W = ws.length ? ws.reduce((a,b)=>a+b,0)/ws.length : 0.43;
-  const two = (a,b,ua,va,ub,vb)=> a&&b ? 0.5*(avSample(a,ua,va)+avSample(b,ub,vb)) : a ? avSample(a,ua,va) : b ? avSample(b,ub,vb) : 1;
-  const N = 110;
-  const d = L/N;
-  const nx = N+3, ny = Math.ceil(H/d)+3, nz = Math.ceil(W/d)+3;
+  if(frs.length) ws.push(frs.reduce((a,o)=>a+o.w/o.h, 0)/frs.length * H);
+  if(sd.top) ws.push(sd.top.w/sd.top.h * L);
+  const W = ws.length ? ws.reduce((a,b)=>a+b, 0)/ws.length : 0.43;
+  // escala de pixel de cada vista para unidades do carro (comprimento = 1)
+  const kL = sd.left ? L/sd.left.w : 0, kR = sd.right ? L/sd.right.w : 0;
+  const kF = sd.front ? 0.5*(W/sd.front.w + H/sd.front.h) : 0, kB = sd.rear ? 0.5*(W/sd.rear.w + H/sd.rear.h) : 0;
+  const kT = sd.top ? 0.5*(W/sd.top.w + L/sd.top.h) : 0;
+  const nS = sides.length;
+  const sideF = (x, y)=>{ const v = 1-y/H; let s = 0; if(sd.left) s += avSD(sd.left, 1-x/L, v)*kL; if(sd.right) s += avSD(sd.right, x/L, v)*kR; return s/nS; };
+  const frontF = (y, z)=>{
+    if(!frs.length) return -1;
+    const v = 1-y/H, a = (W/2-z)/W, b = (z+W/2)/W; let s = 0;
+    if(sd.front) s += 0.5*(avSD(sd.front, a, v) + avSD(sd.front, b, v))*kF;   // média com o espelho: simetria esquerda/direita
+    if(sd.rear) s += 0.5*(avSD(sd.rear, b, v) + avSD(sd.rear, a, v))*kB;
+    return s/frs.length;
+  };
+  const topF = (x, z)=> sd.top ? avSD(sd.top, (z+W/2)/W, 1-x/L)*kT : -1;
+  const K = 0.016*L;   // raio do arredondamento das arestas (~6 cm num carro de 4 m)
+  const smax = (a, b)=>{ const h = Math.max(K-Math.abs(a-b), 0)/K; return Math.max(a, b) + h*h*K*0.25; };
+  const F = (x, y, z)=>{ const s = sideF(x, y); if(s > 0.05) return s; return smax(smax(s, frontF(y, z)), topF(x, z)); };
+  // grade de amostragem
+  const N = 150, d = L/N, pad = 3;
+  const nx = N+2*pad+1, ny = Math.ceil(H/d)+2*pad+1, nz = Math.ceil(W/d)+2*pad+1;
+  const X0 = -pad*d, Y0 = -pad*d, Z0 = -W/2-pad*d;
   const f = new Float32Array(nx*ny*nz);
-  const X = i=>(i-1)*d, Y = j=>(j-1)*d, Z = k=>(k-1)*d - W/2;
-  for(let k=0;k<nz;k++){ const z = Z(k);
-    for(let j=0;j<ny;j++){ const y = Y(j), vv = 1-y/H;
-      for(let i=0;i<nx;i++){ const x = X(i);
-        const s = two(mk.left, mk.right, 1-x/L, vv, x/L, vv);
-        if(s<0.02){ continue; }
-        const fv = fr ? two(mk.front, mk.rear, (W/2-z)/W, vv, (z+W/2)/W, vv) : 1;
-        if(fv<0.02) continue;
-        const t = tp ? avSample(tp, (z+W/2)/W, 1-x/L) : 1;
-        f[(k*ny+j)*nx+i] = Math.min(s, fv, t);
+  const sideCache = new Float32Array(nx*ny);
+  for(let j=0; j<ny; j++) for(let i=0; i<nx; i++) sideCache[j*nx+i] = sideF(X0+i*d, Y0+j*d);
+  for(let k=0; k<nz; k++){
+    const z = Z0+k*d;
+    for(let j=0; j<ny; j++){
+      const y = Y0+j*d, fr = frontF(y, z);
+      for(let i=0; i<nx; i++){
+        const s = sideCache[j*nx+i];
+        f[(k*ny+j)*nx+i] = s > 0.05 ? s : smax(smax(s, fr), topF(X0+i*d, z));
       }
     }
+    if(k % 24 === 23) await tick('volume');
   }
-  // superfície (surface nets) no nível 0,5
-  const at = (i,j,k)=>f[(k*ny+j)*nx+i];
-  const vIdx = new Int32Array(nx*ny*nz).fill(-1);
-  const pos = [];
-  const corners = [[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
-  const edges = [[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
-  for(let k=0;k<nz-1;k++) for(let j=0;j<ny-1;j++) for(let i=0;i<nx-1;i++){
-    const val = corners.map(c=>at(i+c[0],j+c[1],k+c[2])-0.5);
-    let inside = 0; val.forEach(v=>{ if(v>0) inside++; });
-    if(inside===0 || inside===8) continue;
-    let sx=0, sy=0, sz=0, n=0;
-    edges.forEach(([a,b])=>{
-      if((val[a]>0)!==(val[b]>0)){
-        const t = val[a]/(val[a]-val[b]);
-        sx += corners[a][0] + t*(corners[b][0]-corners[a][0]);
-        sy += corners[a][1] + t*(corners[b][1]-corners[a][1]);
-        sz += corners[a][2] + t*(corners[b][2]-corners[a][2]); n++;
+  // superfície no nível zero (surface nets)
+  const vIdx = new Int32Array(nx*ny*nz).fill(-1), pos = [];
+  const sx = 1, sy = nx, sz = nx*ny;
+  const co = [0, sx, sy, sx+sy, sz, sz+sx, sz+sy, sz+sx+sy];
+  const cx = [0,1,0,1,0,1,0,1], cy = [0,0,1,1,0,0,1,1], cz = [0,0,0,0,1,1,1,1];
+  const E = [0,1, 2,3, 4,5, 6,7, 0,2, 1,3, 4,6, 5,7, 0,4, 1,5, 2,6, 3,7];
+  const cv = new Float32Array(8);
+  for(let k=0; k<nz-1; k++) for(let j=0; j<ny-1; j++) for(let i=0; i<nx-1; i++){
+    const base = (k*ny+j)*nx+i;
+    let neg = 0;
+    for(let c=0; c<8; c++){ cv[c] = f[base+co[c]]; if(cv[c] < 0) neg++; }
+    if(neg===0 || neg===8) continue;
+    let ax = 0, ay = 0, az = 0, n = 0;
+    for(let e=0; e<24; e+=2){
+      const a = E[e], b = E[e+1];
+      if((cv[a] < 0) !== (cv[b] < 0)){
+        const t = cv[a]/(cv[a]-cv[b]);
+        ax += cx[a] + t*(cx[b]-cx[a]); ay += cy[a] + t*(cy[b]-cy[a]); az += cz[a] + t*(cz[b]-cz[a]); n++;
       }
-    });
-    vIdx[(k*ny+j)*nx+i] = pos.length/3;
-    pos.push(X(i)+sx/n*d, Y(j)+sy/n*d, Z(k)+sz/n*d);
+    }
+    vIdx[base] = pos.length/3;
+    pos.push(X0+(i+ax/n)*d, Y0+(j+ay/n)*d, Z0+(k+az/n)*d);
   }
+  await tick('superfície');
   const ind = [];
-  const cell = (i,j,k)=>vIdx[(k*ny+j)*nx+i];
-  const quad = (a,b,c,e,flip)=>{ if(a<0||b<0||c<0||e<0) return; if(flip) ind.push(a,c,b, a,e,c); else ind.push(a,b,c, a,c,e); };
-  for(let k=1;k<nz-1;k++) for(let j=1;j<ny-1;j++) for(let i=0;i<nx-1;i++){       // arestas em x
-    const a = at(i,j,k)>0.5, b = at(i+1,j,k)>0.5; if(a===b) continue;
-    quad(cell(i,j-1,k-1), cell(i,j,k-1), cell(i,j,k), cell(i,j-1,k), a);
+  const quad = (a, b, c, e, flip)=>{ if(a<0 || b<0 || c<0 || e<0) return; if(flip) ind.push(a,c,b, a,e,c); else ind.push(a,b,c, a,c,e); };
+  for(let k=1; k<nz-1; k++) for(let j=1; j<ny-1; j++) for(let i=0; i<nx-1; i++){
+    const p = (k*ny+j)*nx+i, a = f[p] < 0; if(a === (f[p+sx] < 0)) continue;
+    quad(vIdx[p-sy-sz], vIdx[p-sz], vIdx[p], vIdx[p-sy], a);
   }
-  for(let k=1;k<nz-1;k++) for(let j=0;j<ny-1;j++) for(let i=1;i<nx-1;i++){       // arestas em y
-    const a = at(i,j,k)>0.5, b = at(i,j+1,k)>0.5; if(a===b) continue;
-    quad(cell(i-1,j,k-1), cell(i-1,j,k), cell(i,j,k), cell(i,j,k-1), a);
+  for(let k=1; k<nz-1; k++) for(let j=0; j<ny-1; j++) for(let i=1; i<nx-1; i++){
+    const p = (k*ny+j)*nx+i, a = f[p] < 0; if(a === (f[p+sy] < 0)) continue;
+    quad(vIdx[p-sx-sz], vIdx[p-sx], vIdx[p], vIdx[p-sz], a);
   }
-  for(let k=0;k<nz-1;k++) for(let j=1;j<ny-1;j++) for(let i=1;i<nx-1;i++){       // arestas em z
-    const a = at(i,j,k)>0.5, b = at(i,j,k+1)>0.5; if(a===b) continue;
-    quad(cell(i-1,j-1,k), cell(i,j-1,k), cell(i,j,k), cell(i-1,j,k), a);
+  for(let k=0; k<nz-1; k++) for(let j=1; j<ny-1; j++) for(let i=1; i<nx-1; i++){
+    const p = (k*ny+j)*nx+i, a = f[p] < 0; if(a === (f[p+sz] < 0)) continue;
+    quad(vIdx[p-sx-sy], vIdx[p-sy], vIdx[p], vIdx[p-sx], a);
   }
   if(!ind.length) return null;
-  return {pos:new Float32Array(pos), ind:new Uint32Array(ind), L, H, W};
+  // normais pelo gradiente do campo: sombreamento e escolha de textura suaves
+  const nrm = new Float32Array(pos.length), e = d*0.75;
+  for(let i=0; i<pos.length; i+=3){
+    const x = pos[i], y = pos[i+1], z = pos[i+2];
+    let gx = F(x+e,y,z)-F(x-e,y,z), gy = F(x,y+e,z)-F(x,y-e,z), gz = F(x,y,z+e)-F(x,y,z-e);
+    const l = Math.hypot(gx, gy, gz) || 1;
+    nrm[i] = gx/l; nrm[i+1] = gy/l; nrm[i+2] = gz/l;
+  }
+  return {pos:new Float32Array(pos), ind:new Uint32Array(ind), nrm, L, H, W};
+}
+
+// textura de cada vista: cores do carro "vazadas" para fora da silhueta (sem franja branca no 3D)
+// e alfa = miolo da silhueta (sem o contorno), usado para decidir qual vista pinta cada ponto
+function avTexCanvas(src, edge){
+  const iw = src.naturalWidth || src.width, ih = src.naturalHeight || src.height;
+  const sc = Math.min(1, 1024/Math.max(iw, ih)), w = Math.max(2, Math.round(iw*sc)), h = Math.max(2, Math.round(ih*sc));
+  const c = avCanvas(w, h), ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(src, 0, 0, w, h);
+  const img = ctx.getImageData(0, 0, w, h), D = img.data;
+  const sol = avSolid(c, 512), m = new Uint8Array(w*h);
+  for(let y=0; y<h; y++){ const yy = Math.min(sol.h-1, Math.floor(y*sol.h/h)); for(let x=0; x<w; x++) m[y*w+x] = sol.m[yy*sol.w + Math.min(sol.w-1, Math.floor(x*sol.w/w))]; }
+  // encolhe a silhueta: tira o contorno; no teto tira mais (a borda da vista de cima mostra a lateral espremida)
+  const core = avMorph(m, w, h, Math.max(2, Math.round(Math.max(w,h)*(edge||0.005))), true);
+  // push-pull: pirâmide das cores conhecidas, depois preenche o resto a partir do nível mais grosso
+  let lw = w, lh = h;
+  const lv = [];
+  { const R = new Float32Array(w*h), G = new Float32Array(w*h), B = new Float32Array(w*h), A = new Float32Array(w*h);
+    for(let i=0; i<w*h; i++) if(core[i]){ R[i] = D[i*4]; G[i] = D[i*4+1]; B[i] = D[i*4+2]; A[i] = 1; }
+    lv.push({w, h, R, G, B, A}); }
+  while(lw > 1 || lh > 1){
+    const p = lv[lv.length-1], nw = Math.max(1, Math.ceil(lw/2)), nh = Math.max(1, Math.ceil(lh/2));
+    const R = new Float32Array(nw*nh), G = new Float32Array(nw*nh), B = new Float32Array(nw*nh), A = new Float32Array(nw*nh);
+    for(let y=0; y<lh; y++) for(let x=0; x<lw; x++){ const s = y*lw+x, t = (y>>1)*nw+(x>>1); R[t] += p.R[s]; G[t] += p.G[s]; B[t] += p.B[s]; A[t] += p.A[s]; }
+    lv.push({w:nw, h:nh, R, G, B, A}); lw = nw; lh = nh;
+  }
+  for(let l=lv.length-1; l>=0; l--){
+    const q = lv[l], par = lv[l+1];
+    for(let y=0; y<q.h; y++) for(let x=0; x<q.w; x++){
+      const i = y*q.w+x;
+      if(q.A[i] > 0){ q.R[i] /= q.A[i]; q.G[i] /= q.A[i]; q.B[i] /= q.A[i]; q.A[i] = 1; }
+      else if(par){ const j = (y>>1)*par.w+(x>>1); q.R[i] = par.R[j]; q.G[i] = par.G[j]; q.B[i] = par.B[j]; q.A[i] = 1; }
+      else { q.R[i] = q.G[i] = q.B[i] = 200; q.A[i] = 1; }
+    }
+  }
+  // devolve os bytes crus, linha de baixo primeiro (orientação do WebGL). Não dá para usar canvas aqui:
+  // o canvas guarda cor pré-multiplicada pelo alfa e apaga (deixa preta) a cor dos pixels com alfa 0
+  // alfa suave: sobe de 0 a 1 em alguns pixels a partir da borda (transição entre vistas sem serrilhado)
+  const dEdge = avEDT(core, w, h, 0), ramp = Math.max(4, Math.max(w, h)*0.014);
+  const top = lv[0], out = new Uint8Array(w*h*4);
+  for(let y=0; y<h; y++){
+    const ro = (h-1-y)*w*4;
+    for(let x=0; x<w; x++){
+      const i = y*w+x, o = ro + x*4;
+      if(core[i]){ out[o] = D[i*4]; out[o+1] = D[i*4+1]; out[o+2] = D[i*4+2]; out[o+3] = Math.min(255, Math.round(255*dEdge[i]/ramp)); }
+      else { out[o] = top.R[i]; out[o+1] = top.G[i]; out[o+2] = top.B[i]; out[o+3] = 0; }
+    }
+  }
+  return {data:out, w, h};
 }
 
 let AV3 = null;
@@ -3565,26 +3728,35 @@ const AV_FS = `precision highp float; varying vec3 vP; varying vec3 vN;
 uniform sampler2D tF, tB, tL, tR, tT; uniform float hF, hB, hL, hR, hT; uniform float uL, uH, uW;
 void main(){
   vec3 n = normalize(vN); float x = vP.x, y = vP.y, z = vP.z;
-  float wF = hF*pow(max(n.x,0.0),3.0), wB = hB*pow(max(-n.x,0.0),3.0), wR = hR*pow(max(n.z,0.0),3.0), wL = hL*pow(max(-n.z,0.0),3.0), wT = hT*pow(max(n.y,0.0),3.0);
-  vec3 c = vec3(0.0); float s = wF+wB+wR+wL+wT;
-  if(s < 0.0001){ gl_FragColor = vec4(vec3(0.55),1.0); return; }
-  // alfa = silhueta da vista: cada vista só pinta onde ela tem carro (evita franjas brancas do fundo)
+  // cada vista só pinta superfícies voltadas para ela; o teto só o que está bem de frente para cima
+  // (a borda da vista de cima mostra a lateral "caindo", escura: se pintasse o ombro, viraria uma faixa preta)
+  float wF = hF*pow(clamp((n.x-0.25)/0.75, 0.0, 1.0), 3.0), wB = hB*pow(clamp((-n.x-0.25)/0.75, 0.0, 1.0), 3.0);
+  float wR = hR*pow(clamp((n.z-0.12)/0.88, 0.0, 1.0), 3.0), wL = hL*pow(clamp((-n.z-0.12)/0.88, 0.0, 1.0), 3.0);
+  float wT = hT*pow(clamp((n.y-0.5)/0.5, 0.0, 1.0), 3.0);
+  float s = wF+wB+wR+wL+wT;
   vec4 sF = texture2D(tF, vec2((uW*0.5 - z)/uW, y/uH)), sB = texture2D(tB, vec2((z + uW*0.5)/uW, y/uH));
   vec4 sL = texture2D(tL, vec2(1.0 - x/uL, y/uH)), sR = texture2D(tR, vec2(x/uL, y/uH)), sT = texture2D(tT, vec2((z + uW*0.5)/uW, x/uL));
-  vec3 ca = wF*sF.a*sF.rgb + wB*sB.a*sB.rgb + wL*sL.a*sL.rgb + wR*sR.a*sR.rgb + wT*sT.a*sT.rgb;
-  float sa = wF*sF.a + wB*sB.a + wL*sL.a + wR*sR.a + wT*sT.a;
-  if(sa > 0.02*s) c = ca/sa;
-  else c = (wF*sF.rgb + wB*sB.rgb + wL*sL.rgb + wR*sR.rgb + wT*sT.rgb)/s;
-  float sh = 0.74 + 0.26*max(dot(n, normalize(vec3(0.45,0.8,0.4))), 0.0);
-  gl_FragColor = vec4(c*sh, 1.0);
+  vec3 c;
+  if(s < 0.0001){ c = mix(0.5*(sL.rgb + sR.rgb), vec3(0.16), clamp(-n.y, 0.0, 1.0)); }   // embaixo do carro: escuro
+  else {
+    // alfa = miolo da silhueta: cada vista só pinta onde ela realmente enxerga o carro
+    vec3 ca = wF*sF.a*sF.rgb + wB*sB.a*sB.rgb + wL*sL.a*sL.rgb + wR*sR.a*sR.rgb + wT*sT.a*sT.rgb;
+    float sa = wF*sF.a + wB*sB.a + wL*sL.a + wR*sR.a + wT*sT.a;
+    vec3 cb = (wF*sF.rgb + wB*sB.rgb + wL*sL.rgb + wR*sR.rgb + wT*sT.rgb)/s;
+    c = sa > 0.0001 ? mix(cb, ca/sa, clamp(sa/(0.02*s), 0.0, 1.0)) : cb;
+  }
+  float dif = max(dot(n, normalize(vec3(0.35, 0.85, 0.45))), 0.0);
+  float sh = 0.66 + 0.22*dif + 0.12*(0.5 + 0.5*n.y);
+  float ao = mix(0.72, 1.0, smoothstep(0.0, 0.32*uH, y));   // escurece perto do chão
+  gl_FragColor = vec4(c*sh*ao, 1.0);
 }`;
 const AV_S = 4;   // comprimento do carro em unidades 3D
 let _avViewer = null;
-async function avViewer(key, views){
+async function avViewer(key, views, onStep){
   if(_avViewer && _avViewer.key===key) return _avViewer;
   if(_avViewer) _avViewer.dispose();
   const {THREE, OrbitControls} = await av3Load();
-  const hull = avBuildHull(views);
+  const hull = await avBuildHull(views, onStep);
   if(!hull) throw new Error('hull');
   const {L, H, W} = hull, S = AV_S/L;
   const geo = new THREE.BufferGeometry();
@@ -3594,45 +3766,41 @@ async function avViewer(key, views){
   geo.setAttribute('position', new THREE.BufferAttribute(wp, 3));
   geo.setIndex(new THREE.BufferAttribute(hull.ind, 1));
   geo.computeVertexNormals();
-  // garante normais para fora: o ponto mais à frente precisa apontar para +X
-  let iMax = 0; for(let i=0;i<wp.length;i+=3) if(wp[i]>wp[iMax]) iMax = i;
-  if(geo.attributes.normal.array[iMax] < 0){
-    const ix = geo.index.array; for(let i=0;i<ix.length;i+=3){ const t = ix[i+1]; ix[i+1] = ix[i+2]; ix[i+2] = t; }
-    geo.computeVertexNormals();
-  }
+  // confere o sentido dos triângulos (para fora) comparando com as normais do campo
+  { const gn = geo.attributes.normal.array; let agree = 0; for(let i=0;i<gn.length;i+=3*37) agree += gn[i]*hull.nrm[i] + gn[i+1]*hull.nrm[i+1] + gn[i+2]*hull.nrm[i+2];
+    if(agree < 0){ const ix = geo.index.array; for(let i=0;i<ix.length;i+=3){ const t = ix[i+1]; ix[i+1] = ix[i+2]; ix[i+2] = t; } } }
+  geo.setAttribute('normal', new THREE.BufferAttribute(hull.nrm, 3));
+  geo.computeBoundingSphere();
+  if(onStep) onStep('texturas'); await new Promise(r=>setTimeout(r, 0));
   const tex = k=>{
-    let src = views[k] || avCanvas(2,2);
-    if(views[k]){
-      // copia a vista com a silhueta no canal alfa
-      const iw = src.naturalWidth || src.width, ih = src.naturalHeight || src.height;
-      const sol = avSolid(src, 400), keep = avMorph(sol.m, sol.w, sol.h, 1, false);
-      const mc = avCanvas(sol.w, sol.h), mx = mc.getContext('2d'), id = mx.createImageData(sol.w, sol.h);
-      for(let i=0;i<sol.w*sol.h;i++){ id.data[i*4+3] = keep[i] ? 255 : 0; }
-      mx.putImageData(id, 0, 0);
-      const cv = avCanvas(iw, ih), cx = cv.getContext('2d');
-      cx.drawImage(src, 0, 0, iw, ih);
-      cx.globalCompositeOperation = 'destination-in'; cx.drawImage(mc, 0, 0, iw, ih);
-      src = cv;
-    }
-    const t = new THREE.Texture(src); t.needsUpdate = true; t.premultiplyAlpha = false; t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = 4; return t; };
+    const d = views[k] ? avTexCanvas(views[k], 0.006) : {data:new Uint8Array([200,200,200,0]), w:1, h:1};
+    const t = new THREE.DataTexture(d.data, d.w, d.h, THREE.RGBAFormat);
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = 4;
+    t.needsUpdate = true; return t; };
   const mat = new THREE.ShaderMaterial({vertexShader:AV_VS, fragmentShader:AV_FS, uniforms:{
     tF:{value:tex('front')}, tB:{value:tex('rear')}, tL:{value:tex('left')}, tR:{value:tex('right')}, tT:{value:tex('top')},
     hF:{value:views.front?1:0}, hB:{value:views.rear?1:0}, hL:{value:views.left?1:0}, hR:{value:views.right?1:0}, hT:{value:views.top?1:0},
     uL:{value:L}, uH:{value:H}, uW:{value:W}, uS:{value:S}}});
   const mesh = new THREE.Mesh(geo, mat);
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x212227);
   scene.add(mesh);
-  const grid = new THREE.GridHelper(12, 24, 0x3a3c44, 0x2c2e35); grid.position.y = -0.01; scene.add(grid);
+  // sombra de contato no chão
+  { const c = avCanvas(256, 256), x = c.getContext('2d'), g = x.createRadialGradient(128,128,10, 128,128,128);
+    g.addColorStop(0, 'rgba(0,0,0,0.62)'); g.addColorStop(0.55, 'rgba(0,0,0,0.38)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0,0,256,256);
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(L*S*1.22, W*S*1.75), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false}));
+    sh.rotation.x = -Math.PI/2; sh.position.y = 0.004; scene.add(sh); }
+  const grid = new THREE.GridHelper(14, 28, 0x34363e, 0x2a2c33); grid.position.y = -0.002; grid.material.transparent = true; grid.material.opacity = 0.55; scene.add(grid);
   const marks = new THREE.Group(); scene.add(marks);
   const canvas = document.createElement('canvas');
-  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
+  renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
   const controls = new OrbitControls(camera, canvas);
-  controls.enableDamping = true; controls.minDistance = 3; controls.maxDistance = 16; controls.maxPolarAngle = Math.PI*0.495; controls.enablePan = false;
-  const target = new THREE.Vector3(0, H*S*0.45, 0);
-  const reset = ()=>{ camera.position.set(5.2, 3.0, 5.6); controls.target.copy(target); controls.update(); };
+  controls.enableDamping = true; controls.minDistance = 3; controls.maxDistance = 16; controls.maxPolarAngle = Math.PI*0.48; controls.enablePan = false;
+  const target = new THREE.Vector3(0, H*S*0.42, 0);
+  const reset = ()=>{ camera.position.set(5.0, 2.6, 5.6); controls.target.copy(target); controls.update(); };
   reset();
   const ray = new THREE.Raycaster();
   const toWorld = (x,y,z)=>new THREE.Vector3((x-L/2)*S, y*S, z*S);
@@ -3837,7 +4005,8 @@ async function avMountViewer(car){
     st.innerHTML = `<div class="av-3d" id="av3d"><div class="msg">Montando o 3D…</div></div>
       <div class="av-zoom"><button onclick="_avViewer && _avViewer.reset()" title="Recentralizar">⟲</button></div>`;
     try{
-      const V = await avViewer(STATE.currentCarId+'|'+car.ficha.createdAt, imgs.views);
+      await new Promise(r=>setTimeout(r, 30));   // deixa a mensagem aparecer antes do cálculo
+      const V = await avViewer(STATE.currentCarId+'|'+car.ficha.createdAt, imgs.views, t=>{ const m = document.querySelector('#av3d .msg'); if(m) m.textContent = 'Montando o 3D… ('+t+')'; });
       const el = document.getElementById('av3d'); if(!el) return;
       V.attach(el);
       V.setMarks(avVisibleMarks(car).map(m=>({id:m.id, view:m.view, u:m.u, v:m.v, num:m.num, color:avColor(m.type), ghost:m.ghost})));
@@ -4134,7 +4303,8 @@ async function avSetupPreview(){
   const box = document.getElementById('avSetup3d'); if(!box) return;
   box.innerHTML = '<div class="msg">Montando…</div>';
   try{
-    const V = await avViewer('setup|'+Date.now(), AVS.canon);
+    await new Promise(r=>setTimeout(r, 30));
+    const V = await avViewer('setup|'+Date.now(), AVS.canon, t=>{ const m = box.querySelector('.msg'); if(m) m.textContent = 'Montando… ('+t+')'; });
     V.attach(box); V.setMarks([]); V.onTap = null; V.onMark = null;
   }catch(e){ box.innerHTML = `<div class="msg">${!AV3 && navigator.onLine===false ? 'Precisa de internet na primeira vez para carregar o 3D.' : 'Não deu para montar o 3D: confira se as duas laterais estão definidas.'}</div>`; }
 }
