@@ -290,6 +290,55 @@ a.link{color:var(--teal);}
 .pdf-charts > div{flex:1; min-width:0;}
 .pdf-charts .chart-lbl{font-size:10.5px; color:var(--text-dim); margin-bottom:4px; font-weight:600;}
 .pdf-charts .km-chart-box{margin-bottom:0;}
+
+/* ============ FIPE ============ */
+.fipe-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:12px;}
+.fipe-head .nm{font-size:15px; font-weight:600;}
+.fipe-head .vs{font-size:11.5px; color:var(--text-dim); margin-top:2px; line-height:1.45;}
+.fipe-head .ed{background:none; border:1px solid var(--border); color:var(--text-dim); border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer; flex-shrink:0;}
+.card .value.neg{color:var(--red);}
+.card .value.pos{color:var(--teal);}
+.card .value.sm{font-size:19px;}
+.fipe-progress{background:var(--bg-el); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px; font-size:12.5px; color:var(--text-dim);}
+.fipe-progress .track{height:5px; border-radius:3px; background:var(--bg-el-2); overflow:hidden; margin-top:8px;}
+.fipe-progress .fill{height:100%; background:var(--accent); transition:width 0.2s;}
+.fipe-msg{font-size:12px; color:var(--yellow); margin:-4px 0 12px; line-height:1.5;}
+.rec-card{background:var(--bg-el); border:1px solid var(--border); border-left:3px solid var(--c, var(--teal)); border-radius:var(--radius); padding:12px 14px; margin-bottom:8px;}
+.rec-card .t{font-size:14px; font-weight:600; color:var(--c, var(--teal));}
+.rec-card .d{font-size:12px; color:var(--text-dim); margin-top:4px; line-height:1.55;}
+.fchart svg{touch-action:pan-y; cursor:crosshair;}
+.fchart-legend{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:11px; color:var(--text-dim); margin-top:8px;}
+.fchart-legend .lg{display:inline-flex; align-items:center; gap:5px;}
+.fchart-legend .sw{width:14px; height:3px; border-radius:2px; display:inline-block;}
+.fchart-legend .sw.dash{background:none !important; border-top:2px dashed var(--c); height:0;}
+.fchart-note{font-size:11px; color:var(--text-dim); margin-top:6px; line-height:1.5;}
+.wait-box{background:var(--bg-el); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px;}
+.wait-row{margin-bottom:11px;}
+.wait-row:last-of-type{margin-bottom:6px;}
+.wait-row .top{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;}
+.wait-row .top b{font-family:'Oswald',sans-serif; font-size:14px; font-weight:600;}
+.stack{display:flex; height:10px; border-radius:5px; overflow:hidden; background:var(--bg-el-2);}
+.stack span{height:100%;}
+.cmp-box{background:var(--bg-el); border:1px solid var(--border); border-radius:var(--radius); padding:6px 14px; margin-bottom:12px;}
+.cmp-row{padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer;}
+.cmp-row:last-child{border-bottom:none;}
+.cmp-row .top{display:flex; justify-content:space-between; gap:10px; font-size:13px;}
+.cmp-row .top .n{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+.cmp-row .top .r{font-family:'Oswald',sans-serif; font-weight:600; white-space:nowrap;}
+.cmp-row .s{font-size:11px; color:var(--text-dim); margin:2px 0 6px;}
+.cmp-row .bar{height:7px; border-radius:4px; background:var(--bg-el-2); overflow:hidden;}
+.cmp-row .bar span{display:block; height:100%; border-radius:4px;}
+.cmp-row.mine .n{color:var(--accent);}
+.pick-search{position:sticky; top:-18px; background:var(--bg-el); padding:2px 0 10px; z-index:2;}
+.pick-list .opt{padding:12px 4px; border-bottom:1px solid var(--border); font-size:14px; cursor:pointer;}
+.pick-list .opt:active{background:var(--bg-el-2);}
+.pick-list .opt.sel{color:var(--accent); font-weight:600;}
+.pick-list .info{font-size:12.5px; color:var(--text-dim); padding:14px 4px;}
+.fipe-alert{display:flex; gap:10px; align-items:center; background:var(--bg-el); border:1px solid var(--c); border-radius:var(--radius); padding:11px 13px; margin-bottom:14px; cursor:pointer;}
+.fipe-alert .tx{flex:1; min-width:0;}
+.fipe-alert .t{font-size:13.5px; font-weight:600; color:var(--c);}
+.fipe-alert .d{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
+.fipe-alert .ar{color:var(--text-dim); font-size:18px;}
 </style>
 </head>
 <body>
@@ -314,6 +363,7 @@ a.link{color:var(--teal);}
 
   <div class="view active" id="view-painel">
     <div id="backupBanner"></div>
+    <div id="fipeAlert"></div>
     <button class="btn-ghost" style="margin:0 0 14px" onclick="openOdoForm()">📍 Atualizar km atual</button>
     <div class="cards-grid" id="dashCards"></div>
     <div id="revisionCard"></div>
@@ -377,6 +427,16 @@ a.link{color:var(--teal);}
     </div>
   </div>
 
+  <div class="view" id="view-fipe">
+    <div id="fipeOwn"></div>
+    <div class="section-title">Carros que você acompanha</div>
+    <div id="fipeWatchList"></div>
+    <button class="btn-ghost" style="margin-top:0" onclick="openFipeForm('watch')">+ Acompanhar um carro</button>
+    <div class="section-title">Ajustes da análise</div>
+    <div class="settings-group" id="fipeSettingsBox"></div>
+    <div class="hint" style="margin-top:4px">Valores da Tabela FIPE consultados pela API pública Parallelum (atualiza uma vez por mês). Projeções seguem o ritmo de queda dos últimos 12 meses e são estimativas, não garantia de preço de venda.</div>
+  </div>
+
 </main>
 
 <button class="fab" id="fabBtn">+</button>
@@ -397,6 +457,10 @@ a.link{color:var(--teal);}
   <button class="navbtn" data-view="despesas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l3 3v15H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
     Despesas
+  </button>
+  <button class="navbtn" data-view="fipe">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4v16h18"/><path d="M7 8l4 4 3-3 5 6"/><path d="M19 11.5V15h-3.5"/></svg>
+    FIPE
   </button>
   <button class="navbtn" data-view="ajustes">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -560,6 +624,72 @@ a.link{color:var(--teal);}
     <h2>Seus veículos</h2>
     <div id="switchList"></div>
     <button class="btn-ghost" onclick="closeOverlay('ov-switch'); openVehicleForm()">+ Adicionar veículo</button>
+  </div>
+</div>
+
+
+<!-- FORM: FIPE (vincular carro / acompanhar carro) -->
+<div class="overlay" id="ov-fipe-form">
+  <div class="sheet">
+    <button class="close" onclick="closeOverlay('ov-fipe-form')">×</button>
+    <h2 id="fpTitle">Vincular à FIPE</h2>
+    <div class="hint" id="fpHint" style="margin-top:-8px"></div>
+    <div class="field">
+      <label>Tipo</label>
+      <div class="chip-row" id="fp-type-chips" style="margin-bottom:0"></div>
+    </div>
+    <div class="field"><label>Marca</label><input type="text" id="fp-brand" readonly placeholder="Toque para escolher" onclick="fipePick('brand')"></div>
+    <div class="field"><label>Modelo / versão</label><input type="text" id="fp-model" readonly placeholder="Escolha a marca primeiro" onclick="fipePick('model')"></div>
+    <div class="field"><label>Ano / combustível</label><input type="text" id="fp-year" readonly placeholder="Escolha o modelo primeiro" onclick="fipePick('year')"></div>
+    <div id="fp-preview" class="hint" style="margin-top:-4px"></div>
+    <div id="fp-own-fields">
+      <div class="field"><label>Preço que você pagou (R$)</label><input type="number" step="0.01" id="fp-paid" inputmode="decimal" placeholder="Ex: 84900"></div>
+      <div class="hint" id="fp-own-info"></div>
+    </div>
+    <button class="btn-primary" onclick="saveFipeForm()">Salvar</button>
+    <button class="btn-secondary" id="fp-delete" style="display:none" onclick="deleteFipeForm()">Remover</button>
+  </div>
+</div>
+
+<!-- LISTA DE ESCOLHA FIPE (marca / modelo / ano) -->
+<div class="overlay" id="ov-fipe-pick">
+  <div class="sheet" style="min-height:70vh">
+    <button class="close" onclick="closeFipePick()">×</button>
+    <h2 id="pickTitle">Escolha</h2>
+    <div class="pick-search field"><input type="text" id="pickSearch" placeholder="Buscar..." oninput="renderPickList()" autocomplete="off"></div>
+    <div class="pick-list" id="pickList"></div>
+  </div>
+</div>
+
+<!-- DETALHE DE UM CARRO ACOMPANHADO -->
+<div class="overlay" id="ov-fipe-detail">
+  <div class="sheet">
+    <button class="close" onclick="closeOverlay('ov-fipe-detail')">×</button>
+    <div id="fipeDetailBody"></div>
+  </div>
+</div>
+
+<!-- AJUSTES DA ANÁLISE FIPE -->
+<div class="overlay" id="ov-fipe-settings">
+  <div class="sheet">
+    <button class="close" onclick="closeOverlay('ov-fipe-settings')">×</button>
+    <h2>Ajustes da análise</h2>
+    <div class="section-title first">Comparação com investimento</div>
+    <div class="field-row">
+      <div class="field"><label>CDI (% ao ano)</label><input type="number" step="0.01" id="fs-cdi" inputmode="decimal"></div>
+      <div class="field"><label>% do CDI</label><input type="number" step="1" id="fs-pct" inputmode="numeric"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>IR sobre o rendimento (%)</label><input type="number" step="0.5" id="fs-ir" inputmode="decimal"></div>
+      <div class="field" style="display:flex; align-items:flex-end"><button class="btn-ghost" style="margin:0; padding:11px" onclick="fetchCDI(true)">Buscar CDI atual</button></div>
+    </div>
+    <div class="hint" id="fs-cdi-info"></div>
+    <div class="section-title">Histórico da FIPE</div>
+    <div class="chip-row" id="fs-months-chips"></div>
+    <div class="hint">Cada mês de histórico é uma consulta à API (limite grátis: 500 por dia). Os meses já baixados ficam salvos no celular e não são consultados de novo.</div>
+    <div class="field"><label>Token da API FIPE (opcional)</label><input type="text" id="fs-token" placeholder="Deixe vazio se não tiver" autocomplete="off"></div>
+    <div class="hint">Com um token grátis do fipe.api.br o limite sobe para 1.000 consultas por dia.</div>
+    <button class="btn-primary" onclick="saveFipeSettings()">Salvar ajustes</button>
   </div>
 </div>
 
@@ -1330,7 +1460,7 @@ function renderAjustesView(){
 
 /* ============ NAVEGAÇÃO ============ */
 function renderAll(){
-  renderHeader(); renderPainel(); renderFuelView(); renderMaintView(); renderExpView(); renderAjustesView();
+  renderHeader(); renderPainel(); renderFuelView(); renderMaintView(); renderExpView(); renderAjustesView(); renderFipeView();
 }
 document.querySelectorAll('.navbtn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -1347,6 +1477,7 @@ document.getElementById('fabBtn').addEventListener('click', ()=>{
   if(active==='painel' || active==='abastecimento') openFuelForm();
   else if(active==='manutencao') openMaintForm();
   else if(active==='despesas') openExpForm();
+  else if(active==='fipe') openFipeForm('watch');
 });
 
 /* ============ OVERLAYS ============ */
@@ -1414,7 +1545,8 @@ async function saveVehicle(){
     revisionKm: Number(document.getElementById('vf-rev-km').value)||null,
     revisionMonths: Number(document.getElementById('vf-rev-months').value)||null,
     revisionStart: document.getElementById('vf-rev-start').value || null,
-    createdAt: STATE.editing ? STATE.cars[STATE.editing].info.createdAt : Date.now()
+    createdAt: STATE.editing ? STATE.cars[STATE.editing].info.createdAt : Date.now(),
+    fipe: STATE.editing ? STATE.cars[STATE.editing].info.fipe : undefined
   };
   if(STATE.editing){
     STATE.cars[STATE.editing].info = info;
@@ -1768,7 +1900,7 @@ async function bumpBackupCounter(){
   renderBackupBanner();
 }
 function exportData(){
-  const payload = { exportedAt: new Date().toISOString(), settings: STATE.settings, cars: STATE.cars };
+  const payload = { exportedAt: new Date().toISOString(), settings: STATE.settings, cars: STATE.cars, fipe: {watch: FIPE.watch, settings: FIPE.settings} };
   const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1901,6 +2033,11 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
       await persistCar(id);
     }
     await persistIndex();
+    if(data.fipe){
+      (data.fipe.watch||[]).forEach(w=>{ const i = FIPE.watch.findIndex(x=>x.id===w.id); if(i>-1) FIPE.watch[i] = w; else FIPE.watch.push(w); });
+      await fipeSaveWatch();
+      if(data.fipe.settings){ Object.assign(FIPE.settings, data.fipe.settings); await fipeSaveSettings(); }
+    }
     if(data.settings && data.settings.selectedCarId && STATE.cars[data.settings.selectedCarId]){
       STATE.currentCarId = data.settings.selectedCarId;
       STATE.settings.selectedCarId = data.settings.selectedCarId;
@@ -1915,6 +2052,814 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
   }
   e.target.value='';
 });
+
+
+/* ============ FIPE: DEPRECIAÇÃO E RECOMENDAÇÕES ============ */
+// Dados da Tabela FIPE pela API pública Parallelum (v2). Cada mês do histórico é uma consulta
+// com ?reference=<código do mês>; os meses baixados ficam salvos no celular e não são buscados de novo.
+const FIPE_BASE = 'https://fipe.parallelum.com.br/api/v2';
+const FIPE_TYPES = [{k:'cars', l:'Carro'}, {k:'motorcycles', l:'Moto'}, {k:'trucks', l:'Caminhão'}];
+const MESES_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const MES_CURTO = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const FIPE_LV = {red:'var(--red)', yellow:'var(--yellow)', teal:'var(--teal)', blue:'var(--blue)'};
+const FIPE_LV_ORDER = {red:0, yellow:1, teal:2, blue:3};
+
+const FIPE = { settings:null, watch:[], cache:{}, refs:null, lists:{}, loading:{}, errors:{}, offline:false, lastSync:null };
+
+async function fipeLoad(){
+  FIPE.settings = Object.assign({cdi:13.65, cdiPct:100, ir:15, months:24, token:'', cdiUpdatedAt:null, cdiDate:null}, await dbGet('fipe_settings', {}));
+  FIPE.watch = await dbGet('fipe_watch', []);
+  FIPE.cache = await dbGet('fipe_cache', {});
+  FIPE.refs = await dbGet('fipe_refs', null);
+}
+function fipeSaveSettings(){ return dbSet('fipe_settings', FIPE.settings); }
+function fipeSaveWatch(){ return dbSet('fipe_watch', FIPE.watch); }
+let _fipeCacheTimer = null;
+function fipeSaveCache(){ clearTimeout(_fipeCacheTimer); _fipeCacheTimer = setTimeout(()=>dbSet('fipe_cache', FIPE.cache), 250); }
+
+/* --- formatação --- */
+function fmtPct(x, digits){
+  if(x==null || !isFinite(x)) return '—';
+  const d = digits==null ? 1 : digits;
+  const v = x*100;
+  return (v>0.00001?'+':'') + v.toLocaleString('pt-BR',{minimumFractionDigits:d, maximumFractionDigits:d}) + '%';
+}
+function fmtMoneyInt(v){ return 'R$ ' + Math.round(Number(v)||0).toLocaleString('pt-BR'); }
+function fmtSignedMoney(v){ const r = Math.round(v); return (r>0?'+':r<0?'−':'') + fmtMoneyInt(Math.abs(r)); }
+function fmtMil(v, span){
+  if(Math.abs(v)>=1e6) return (v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi';
+  return (v/1000).toLocaleString('pt-BR',{maximumFractionDigits: span<8000 ? 1 : 0})+' mil';
+}
+const ymKey = (y,m)=> y*12+(m-1);
+const kToYM = k => ({y:Math.floor(k/12), m:(k%12)+1});
+function kLabel(k){ const {y,m} = kToYM(k); return MES_CURTO[m-1]+'/'+String(y).slice(2); }
+function kLabelLong(k){ const {y,m} = kToYM(k); return MESES_FULL[m-1]+' de '+y; }
+function isoToK(iso){ return iso ? ymKey(Number(iso.slice(0,4)), Number(iso.slice(5,7))) : null; }
+function normTxt(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+function fipeBrandShort(name){ const s = String(name||''); return s.includes(' - ') ? s.split(' - ').slice(1).join(' - ') : s; }
+function fipeSpecName(s){ return `${fipeBrandShort(s.brandName)} ${s.modelName}`.trim(); }
+function fipeSpecShort(s){ const m = String(s.modelName||'').split(' ').slice(0,2).join(' '); return `${fipeBrandShort(s.brandName)} ${m}`.trim(); }
+
+/* --- API --- */
+async function fipeGet(path){
+  const headers = FIPE.settings.token ? {'X-Subscription-Token': FIPE.settings.token.trim()} : {};
+  let res;
+  try{ res = await fetch(FIPE_BASE + path, {headers}); }
+  catch(e){ const err = new Error('offline'); err.code = 'offline'; throw err; }
+  if(res.status===429){ const err = new Error('limit'); err.code = 'limit'; throw err; }
+  if(!res.ok){ const err = new Error('http '+res.status); err.code = 'http'; err.status = res.status; throw err; }
+  FIPE.offline = false;
+  return res.json();
+}
+function parseFipePrice(s){
+  if(typeof s==='number') return s>0 ? s : null;
+  const n = Number(String(s||'').replace(/[^\d,]/g,'').replace(',','.'));
+  return n>0 ? n : null;
+}
+function parseRefMonth(s){ // "novembro/2026" ou "novembro de 2026"
+  const t = String(s||'').toLowerCase().trim();
+  const m = MESES_FULL.findIndex(x=>t.startsWith(x));
+  const y = Number((t.match(/(\d{4})/)||[])[1]);
+  return (m>=0 && y) ? {y, m:m+1} : null;
+}
+async function ensureRefs(force){
+  const fresh = FIPE.refs && (Date.now()-FIPE.refs.fetchedAt < 12*3600e3);
+  if(fresh && !force) return FIPE.refs.list;
+  try{
+    const data = await fipeGet('/references');
+    const list = data.map(r=>{ const p = parseRefMonth(r.month); return p ? {code:String(r.code), k:ymKey(p.y,p.m)} : null; })
+      .filter(Boolean).sort((a,b)=>b.k-a.k);
+    if(list.length){ FIPE.refs = {list, fetchedAt:Date.now()}; await dbSet('fipe_refs', FIPE.refs); }
+  }catch(e){
+    if(e.code==='offline') FIPE.offline = true;
+    if(!FIPE.refs) throw e;
+  }
+  return FIPE.refs.list;
+}
+async function fipeList(path){
+  if(FIPE.lists[path]) return FIPE.lists[path];
+  const data = await fipeGet(path);
+  FIPE.lists[path] = data;
+  return data;
+}
+
+/* --- histórico (série mensal) --- */
+function specKey(s){ return [s.type||'cars', s.brandCode, s.modelCode, s.yearCode].join('|'); }
+function specPath(s){ return `/${s.type||'cars'}/brands/${s.brandCode}/models/${s.modelCode}/years/${s.yearCode}`; }
+function fipeErrMsg(e){
+  if(e.code==='limit') return 'Limite diário de consultas da API FIPE atingido. Os meses que faltam serão buscados amanhã (ou adicione um token grátis nos ajustes).';
+  if(e.code==='offline') return 'Sem internet: mostrando os dados já salvos no celular.';
+  return 'A API da FIPE não respondeu agora. Tente atualizar mais tarde.';
+}
+function loadSeries(spec, extraKeys, force){
+  const key = specKey(spec);
+  if(FIPE.loading[key]) return FIPE.loading[key].promise;
+  const st = {done:0, total:0};
+  FIPE.loading[key] = st;
+  st.promise = (async ()=>{
+    await ensureRefs();
+    const c = FIPE.cache[key] || (FIPE.cache[key] = {prices:{}, missing:{}});
+    const list = FIPE.refs.list;
+    const wanted = list.slice(0, FIPE.settings.months + 1);
+    (extraKeys||[]).forEach(k=>{ const r = list.find(x=>x.k===k); if(r && !wanted.includes(r)) wanted.push(r); });
+    const newest2 = list.slice(0,2).map(r=>r.code);
+    // mês ainda não publicado (os 2 mais recentes) é consultado de novo depois de 12h
+    const todo = wanted.filter(r=>{
+      if(r.code in c.prices) return false;
+      if(!(r.code in c.missing)) return true;
+      return newest2.includes(r.code) && (force || Date.now()-c.missing[r.code] > 12*3600e3);
+    });
+    st.total = todo.length;
+    if(!todo.length) return;
+    renderFipeSoon();
+    let hadSuccess = Object.keys(c.prices).length>0;
+    for(let i=0; i<todo.length; i+=4){
+      const batch = todo.slice(i, i+4);
+      const results = await Promise.all(batch.map(async r=>{
+        try{
+          const d = await fipeGet(specPath(spec)+'?reference='+r.code);
+          const price = parseFipePrice(d && d.price);
+          if(price){
+            c.prices[r.code] = price; delete c.missing[r.code];
+            if(d.codeFipe) c.codeFipe = d.codeFipe;
+            return 'ok';
+          }
+          c.missing[r.code] = Date.now(); return 'miss';
+        }catch(e){
+          if(e.code==='http' && e.status>=400 && e.status<500){ c.missing[r.code] = Date.now(); return 'miss'; }
+          throw e;
+        }finally{ st.done++; }
+      }));
+      fipeSaveCache(); renderFipeSoon();
+      if(results.includes('ok')) hadSuccess = true;
+      else if(hadSuccess || i>=8){
+        // chegou antes do lançamento desse ano-modelo: os meses mais antigos também não existem
+        todo.slice(i+4).forEach(r=>{ c.missing[r.code] = Date.now(); });
+        break;
+      }
+    }
+    c.updatedAt = Date.now();
+    fipeSaveCache();
+  })().then(()=>{ delete FIPE.errors[key]; })
+    .catch(e=>{ FIPE.errors[key] = fipeErrMsg(e); })
+    .finally(()=>{ delete FIPE.loading[key]; renderFipeSoon(); });
+  return st.promise;
+}
+function getSeries(spec){
+  const c = FIPE.cache[specKey(spec)];
+  if(!c || !FIPE.refs) return [];
+  const byCode = {};
+  FIPE.refs.list.forEach(r=>byCode[r.code] = r.k);
+  return Object.entries(c.prices).filter(([code])=>byCode[code]!=null)
+    .map(([code, price])=>({k:byCode[code], price})).sort((a,b)=>a.k-b.k);
+}
+function ownSpecs(){
+  return Object.values(STATE.cars).filter(c=>c.info.fipe && c.info.fipe.yearCode);
+}
+async function fipeSync(force){
+  const jobs = [];
+  ownSpecs().forEach(car=>jobs.push([car.info.fipe, car.info.purchaseDate ? [isoToK(car.info.purchaseDate)] : []]));
+  FIPE.watch.forEach(w=>jobs.push([w, []]));
+  if(!jobs.length) return;
+  try{ await ensureRefs(force); }catch(e){ FIPE.offline = true; renderFipeSoon(); return; }
+  for(const [spec, extra] of jobs){ await loadSeries(spec, extra, force); } // um por vez, para poupar o limite diário
+  FIPE.lastSync = Date.now();
+  renderFipeSoon();
+}
+
+/* --- análise --- */
+function logRate(pts){
+  // ritmo médio mensal por regressão log-linear (menos sensível a um mês fora da curva)
+  if(pts.length<2) return null;
+  if(pts.length===2){ const dm = pts[1].k-pts[0].k; return dm>0 ? Math.pow(pts[1].price/pts[0].price, 1/dm)-1 : null; }
+  const xs = pts.map(p=>p.k), ys = pts.map(p=>Math.log(p.price));
+  const mx = xs.reduce((a,b)=>a+b,0)/xs.length, my = ys.reduce((a,b)=>a+b,0)/ys.length;
+  let num = 0, den = 0;
+  xs.forEach((x,i)=>{ num += (x-mx)*(ys[i]-my); den += (x-mx)*(x-mx); });
+  return den ? Math.exp(num/den)-1 : null;
+}
+function fipeAnalyze(spec){
+  const all = getSeries(spec);
+  if(!all.length) return null;
+  const last = all[all.length-1];
+  const win = all.filter(p=>p.k >= last.k - FIPE.settings.months);
+  const at = k => all.find(p=>p.k===k);
+  const chg = n => { const p = at(last.k-n); return p ? {abs:last.price-p.price, pct:last.price/p.price-1, from:p} : null; };
+  const r12 = logRate(win.filter(p=>p.k>=last.k-12));
+  const r3 = logRate(win.filter(p=>p.k>=last.k-3));
+  const rProj = r12!=null ? r12 : r3;
+  const monthly = [];
+  for(let i=1;i<win.length;i++) if(win[i].k-win[i-1].k===1) monthly.push({k:win[i].k, pct:win[i].price/win[i-1].price-1, abs:win[i].price-win[i-1].price});
+  const proj = rProj!=null ? Array.from({length:13}, (_,i)=>({k:last.k+i, price:last.price*Math.pow(1+rProj, i)})) : [];
+  const first = win[0];
+  const span = last.k-first.k;
+  return {all, win, last, first, span, chg1:chg(1), chg3:chg(3), chg6:chg(6), chg12:chg(12), r12, r3, rProj, monthly, proj};
+}
+function cdiMonthlyNet(){
+  const s = FIPE.settings;
+  const a = (Number(s.cdi)||0)/100 * (Number(s.cdiPct)||0)/100;
+  return (Math.pow(1+a, 1/12)-1) * (1-(Number(s.ir)||0)/100);
+}
+function ownContext(car){
+  const f = car.info.fipe;
+  const pd = car.info.purchaseDate;
+  const monthsOwned = pd ? Math.max(1, daysBetween(pd, todayISO())/30.44) : null;
+  // custo fixo de manter: manutenção + despesas, sem parcelas de financiamento (isso é pagar o carro, não mantê-lo)
+  // IPVA, seguro e licenciamento são anuais: usa o que foi pago nos últimos 12 meses ÷ 12 (pagar à vista não infla a média)
+  const ANNUAL = ['IPVA','Seguro','Licenciamento'];
+  const yearAgo = addMonthsISO(todayISO(), -12);
+  const maint = car.maintenance.reduce((s,r)=>s+(Number(r.cost)||0),0);
+  const exp = car.expenses.filter(r=>r.category!=='Financiamento' && !ANNUAL.includes(r.category)).reduce((s,r)=>s+(Number(r.value)||0),0);
+  const annual = car.expenses.filter(r=>ANNUAL.includes(r.category) && r.date>yearAgo).reduce((s,r)=>s+(Number(r.value)||0),0);
+  return {
+    purchasePrice: Number(f.purchasePrice)||null, purchaseDate: pd, purchaseK: isoToK(pd), monthsOwned,
+    fixedMonthly: monthsOwned ? (maint+exp)/monthsOwned + annual/12 : null,
+    kmMonth: avgKmPerMonth(car), odo: currentOdometer(car)
+  };
+}
+function waitCosts(A, ctx){
+  const P = A.last.price, i = cdiMonthlyNet(), r = A.rProj||0, fix = (ctx && ctx.fixedMonthly) || 0;
+  return [1,3,6,12].map(n=>{
+    const dep = Math.max(0, P - P*Math.pow(1+r, n));
+    const opp = P*(Math.pow(1+i, n)-1);
+    const fx = fix*n;
+    return {n, dep, opp, fix:fx, total:dep+opp+fx};
+  });
+}
+function fipeRecs(car, A, ctx){
+  const recs = [];
+  const P = A.last.price;
+  const i = cdiMonthlyNet();
+  const lastM = A.monthly[A.monthly.length-1];
+  if(lastM && lastM.pct<=-0.03){
+    recs.push({lv:'red', trend:true, t:`Queda forte em ${kLabel(lastM.k)}: ${fmtPct(lastM.pct)}`,
+      d:`A FIPE caiu ${fmtMoneyInt(-lastM.abs)} em um único mês. Quedas assim costumam vir de nova geração, reestilização ou desconto no 0 km do mesmo modelo. Vale ver se o movimento continua no próximo mês antes de decidir.`});
+  }
+  if(A.r3!=null && A.r12!=null && A.span>=6){
+    if(A.r3 < -0.008 && A.r3 < A.r12*1.5){
+      recs.push({lv: A.r3 < -0.015 ? 'red' : 'yellow', trend:true, t:'A desvalorização acelerou',
+        d:`Nos últimos 3 meses caiu em média ${fmtPct(A.r3)}/mês, contra ${fmtPct(A.r12)}/mês no último ano. Se você já pensa em vender, vender logo tende a sair mais barato do que esperar.`});
+    } else if(A.r3 > -0.003){
+      recs.push({lv:'teal', t: A.r3>0.002 ? 'O valor está subindo' : 'Valor estável',
+        d:`Nos últimos 3 meses variou ${fmtPct(A.r3)}/mês. Pelo lado da FIPE não há pressa para vender.`});
+    } else if(A.r12 < -0.003 && A.r3 > A.r12*0.6){
+      recs.push({lv:'teal', t:'A queda desacelerou',
+        d:`Últimos 3 meses: ${fmtPct(A.r3)}/mês, mais suave que a média de ${fmtPct(A.r12)}/mês do ano.`});
+    }
+  } else if(A.span<6){
+    recs.push({lv:'blue', t:'Pouco histórico ainda', d:`Há só ${A.span+1} meses de FIPE para este ano-modelo, então as tendências ainda são instáveis.`});
+  }
+  if(A.rProj!=null){
+    const dep = -A.rProj*P, opp = i*P, fix = (ctx && ctx.fixedMonthly) || 0;
+    const total = Math.max(0,dep) + opp + fix;
+    if(dep > opp){
+      recs.push({lv:'yellow', t:'O carro perde mais do que o dinheiro renderia',
+        d:`Desvaloriza cerca de ${fmtMoneyInt(dep)}/mês; o valor dele aplicado a ${Number(FIPE.settings.cdiPct)}% do CDI renderia ${fmtMoneyInt(opp)}/mês líquido. Somando ${ctx?'manutenção e despesas':'tudo'}, manter custa ~${fmtMoneyInt(total)}/mês.`});
+    } else {
+      recs.push({lv:'blue', t:'O maior custo de manter é o rendimento perdido',
+        d:`Desvaloriza ~${fmtMoneyInt(Math.max(0,dep))}/mês, enquanto o valor aplicado renderia ~${fmtMoneyInt(opp)}/mês. Custo total de manter: ~${fmtMoneyInt(total)}/mês.`});
+    }
+  }
+  if(ctx && ctx.purchasePrice && ctx.purchaseK!=null){
+    const pAt = A.all.find(p=>p.k===ctx.purchaseK);
+    if(pAt){
+      const diff = ctx.purchasePrice/pAt.price - 1;
+      const zeroKm = Number(String(car.info.fipe.yearName||'').slice(0,4)) >= Number(ctx.purchaseDate.slice(0,4));
+      if(diff>=0.03) recs.push({lv:'yellow', t:`Você pagou ${fmtPct(diff)} acima da FIPE da época`,
+        d:`FIPE em ${kLabel(pAt.k)}: ${fmtMoneyInt(pAt.price)}; você pagou ${fmtMoneyInt(ctx.purchasePrice)}. ${zeroKm ? 'Para carro comprado 0 km isso é normal: a FIPE do ano-modelo já reflete o preço de usado.' : 'Parte da sua perda até aqui vem dessa diferença, não da queda da FIPE.'}`});
+      else if(diff<=-0.03) recs.push({lv:'teal', t:`Você pagou ${fmtPct(-diff).replace('+','')} abaixo da FIPE da época`,
+        d:`FIPE em ${kLabel(pAt.k)}: ${fmtMoneyInt(pAt.price)}; você pagou ${fmtMoneyInt(ctx.purchasePrice)}. Isso reduz sua perda real numa revenda.`});
+    }
+  }
+  if(ctx && ctx.kmMonth){
+    const kmYear = ctx.kmMonth*12;
+    if(kmYear > 20000) recs.push({lv:'yellow', t:'Você roda bem acima da média',
+      d:`Seu ritmo é de ~${fmtKm(kmYear)} km/ano. A FIPE pressupõe uso médio (o mercado costuma considerar 12 a 15 mil km/ano); com km alta, propostas de compra tendem a vir abaixo da FIPE.`});
+  }
+  if(A.r12!=null){
+    const alts = FIPE.watch.map(w=>({w, A:fipeAnalyze(w)})).filter(x=>x.A && x.A.r12!=null && specKey(x.w)!==specKey(car.info.fipe));
+    const better = alts.filter(x=>x.A.r12 > A.r12 + 0.002).sort((a,b)=>b.A.r12-a.A.r12);
+    if(better.length){
+      const b = better[0], diffP = b.A.last.price - P;
+      recs.push({lv:'blue', t:`Troca: ${fipeSpecShort(b.w)} desvaloriza menos`,
+        d:`Perde ${fmtPct(b.A.r12)}/mês contra ${fmtPct(A.r12)}/mês do seu. Diferença de FIPE hoje: ${fmtSignedMoney(diffP)}${better.length>1 ? ` · mais ${better.length-1} opção(ões) melhor(es) no comparativo abaixo` : ''}.`});
+    } else if(alts.length){
+      recs.push({lv:'teal', t:'Seu carro segura valor melhor que os que você acompanha',
+        d:`Nenhum dos ${alts.length} carro(s) acompanhado(s) desvaloriza menos que o seu (${fmtPct(A.r12)}/mês).`});
+    }
+  }
+  return recs.sort((a,b)=>FIPE_LV_ORDER[a.lv]-FIPE_LV_ORDER[b.lv]);
+}
+
+/* --- gráficos --- */
+const FCHARTS = {};
+function fLineChart(id, cfg){
+  const W = 320, H = cfg.h||175, PL = 40, PR = 10, PT = 14, PB = 22;
+  const pts = cfg.series.flatMap(s=>s.pts);
+  if(pts.length<2) return '';
+  let minX = Math.min(...pts.map(p=>p.k)), maxX = Math.max(...pts.map(p=>p.k));
+  if(maxX===minX) maxX = minX+1;
+  const yv = pts.map(p=>p.v).concat((cfg.hlines||[]).map(h=>h.v));
+  let minY = Math.min(...yv), maxY = Math.max(...yv);
+  const rawSpan = maxY-minY;
+  const pad = rawSpan*0.12 || maxY*0.04 || 1;
+  minY -= pad; maxY += pad;
+  const xOf = k => PL + ((k-minX)/(maxX-minX))*(W-PL-PR);
+  const yOf = v => (H-PB) - ((v-minY)/(maxY-minY))*(H-PT-PB);
+  const yTicks = [0,1,2,3].map(i=>{
+    const v = minY + (maxY-minY)*(i+0.5)/4, y = yOf(v);
+    return `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="2,3"/>
+      <text x="${PL-4}" y="${(y+3).toFixed(1)}" font-size="8.5" fill="#8b8d96" text-anchor="end">${(cfg.yFmt||(v=>fmtMil(v, rawSpan)))(v)}</text>`;
+  }).join('');
+  const nX = Math.min(5, maxX-minX+1);
+  const xTicks = Array.from({length:nX}, (_,i)=>{
+    const k = Math.round(minX + (maxX-minX)*(nX===1?0:i/(nX-1)));
+    const anchor = i===0 ? 'start' : i===nX-1 ? 'end' : 'middle';
+    return `<text x="${xOf(k).toFixed(1)}" y="${H-5}" font-size="8.5" fill="#8b8d96" text-anchor="${anchor}">${kLabel(k)}</text>`;
+  }).join('');
+  const hl = (cfg.hlines||[]).map(h=>{
+    const y = yOf(h.v);
+    return `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="${h.color}" stroke-width="1.2" stroke-dasharray="4,3"/>
+      <text x="${W-PR-2}" y="${(y-4).toFixed(1)}" font-size="8.5" fill="${h.color}" text-anchor="end">${escapeHtml(h.label)}</text>`;
+  }).join('');
+  const seriesSvg = cfg.series.map(s=>{
+    if(!s.pts.length) return '';
+    const d = s.pts.map((p,i)=>(i?'L':'M')+xOf(p.k).toFixed(1)+','+yOf(p.v).toFixed(1)).join(' ');
+    const area = s.area ? `<path d="${d} L${xOf(s.pts[s.pts.length-1].k).toFixed(1)},${H-PB} L${xOf(s.pts[0].k).toFixed(1)},${H-PB} Z" fill="${s.color}" opacity="0.13"/>` : '';
+    const dots = s.dots ? s.pts.map(p=>`<circle cx="${xOf(p.k).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="2.1" fill="${s.color}"/>`).join('') : '';
+    return `${area}<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.width||2}" ${s.dash?'stroke-dasharray="5,4"':''} stroke-linejoin="round" stroke-linecap="round"/>${dots}`;
+  }).join('');
+  const marks = (cfg.markers||[]).map(m=>`<circle cx="${xOf(m.k).toFixed(1)}" cy="${yOf(m.v).toFixed(1)}" r="4.2" fill="var(--bg-el)" stroke="${m.color}" stroke-width="2"/>`).join('');
+  FCHARTS[id] = {cfg, W, H, PL, PR, PT, PB, minX, maxX, xOf, yOf};
+  const legend = (cfg.legend||[]).length ? `<div class="fchart-legend">${cfg.legend.map(l=>`<span class="lg"><span class="sw ${l.dash?'dash':''}" style="background:${l.color}; --c:${l.color}"></span>${escapeHtml(l.label)}</span>`).join('')}</div>` : '';
+  return `<div class="km-chart-box fchart" data-chart="${id}">
+    <svg class="km-svg" viewBox="0 0 ${W} ${H}">${yTicks}${hl}${seriesSvg}${marks}${xTicks}<g class="tip"></g>
+      <rect x="${PL}" y="0" width="${W-PL-PR}" height="${H}" fill="transparent"/></svg>${legend}
+    ${cfg.note ? `<div class="fchart-note">${cfg.note}</div>` : ''}
+  </div>`;
+}
+function fchartTip(box, clientX){
+  const ch = FCHARTS[box.dataset.chart]; if(!ch) return;
+  const svg = box.querySelector('svg'), g = svg.querySelector('.tip');
+  const rect = svg.getBoundingClientRect();
+  const x = (clientX-rect.left)/rect.width*ch.W;
+  const k = Math.round(ch.minX + (x-ch.PL)/(ch.W-ch.PL-ch.PR)*(ch.maxX-ch.minX));
+  if(k<ch.minX || k>ch.maxX){ g.innerHTML=''; return; }
+  const rows = [];
+  ch.cfg.series.forEach(s=>{ const p = s.pts.find(q=>q.k===k); if(s.dash && rows.length && p && p.k===s.pts[0].k) return; if(p && s.name) rows.push({c:s.color, t:`${s.name}: ${fmtMoneyInt(p.v)}`}); });
+  if(!rows.length){ g.innerHTML=''; return; }
+  const xx = ch.xOf(k);
+  const lines = [{c:'var(--text)', t:kLabelLong(k)}].concat(rows);
+  const w = Math.max(...lines.map(l=>l.t.length))*4.7 + 14, h = lines.length*12 + 8;
+  const bx = Math.min(Math.max(xx - w/2, ch.PL), ch.W-ch.PR-w);
+  g.innerHTML = `<line x1="${xx.toFixed(1)}" y1="${ch.PT}" x2="${xx.toFixed(1)}" y2="${ch.H-ch.PB}" stroke="var(--text-dim)" stroke-width="1" stroke-dasharray="2,2"/>
+    ${ch.cfg.series.map(s=>{ const p = s.pts.find(q=>q.k===k); return p ? `<circle cx="${xx.toFixed(1)}" cy="${ch.yOf(p.v).toFixed(1)}" r="3.6" fill="${s.color}" stroke="var(--bg-el)" stroke-width="1.5"/>` : ''; }).join('')}
+    <rect x="${bx.toFixed(1)}" y="2" width="${w.toFixed(1)}" height="${h}" rx="5" fill="var(--bg-el-2)" stroke="var(--border)"/>
+    ${lines.map((l,i)=>`<text x="${(bx+7).toFixed(1)}" y="${(14+i*12)}" font-size="9" fill="${l.c}" ${i===0?'font-weight="600"':''}>${escapeHtml(l.t)}</text>`).join('')}`;
+}
+['pointermove','pointerdown'].forEach(ev=>document.addEventListener(ev, e=>{
+  const box = e.target.closest && e.target.closest('.fchart');
+  document.querySelectorAll('.fchart .tip').forEach(g=>{ if(!box || !box.contains(g)) g.innerHTML=''; });
+  if(box) fchartTip(box, e.clientX);
+}, {passive:true}));
+
+function fBarsChart(monthly){
+  const data = monthly.slice(-12);
+  if(data.length<2) return '';
+  const W = 320, H = 150, PL = 8, PR = 8, PT = 16, PB = 22;
+  const maxAbs = Math.max(...data.map(d=>Math.abs(d.pct)), 0.005);
+  const hasPos = data.some(d=>d.pct>0), hasNeg = data.some(d=>d.pct<0);
+  const zeroY = hasPos && hasNeg ? PT + (H-PT-PB)*0.42 : hasPos ? H-PB : PT;
+  const scale = (hasPos && hasNeg) ? (H-PT-PB)*0.58/maxAbs : (H-PT-PB)/maxAbs;
+  const gap = 5, bw = (W-PL-PR-gap*(data.length-1))/data.length;
+  const bars = data.map((d,i)=>{
+    const x = PL + i*(bw+gap);
+    const h = Math.max(1.5, Math.abs(d.pct)*scale);
+    const y = d.pct>=0 ? zeroY-h : zeroY;
+    const color = d.pct < -0.03 ? 'var(--red)' : d.pct<0 ? '#c9705f' : 'var(--teal)';
+    const lblY = d.pct>=0 ? y-3 : y+h+9;
+    const lbl = (d.pct*100).toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1});
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"/>
+      <text x="${(x+bw/2).toFixed(1)}" y="${lblY.toFixed(1)}" font-size="7.5" fill="#8b8d96" text-anchor="middle">${lbl}</text>
+      ${(data.length<=8 || i%2===(data.length-1)%2) ? `<text x="${(x+bw/2).toFixed(1)}" y="${H-6}" font-size="8.5" fill="#8b8d96" text-anchor="middle">${kLabel(d.k)}</text>` : ''}`;
+  }).join('');
+  return `<div class="km-chart-box"><svg class="km-svg" viewBox="0 0 ${W} ${H}">
+    <line x1="${PL}" y1="${zeroY.toFixed(1)}" x2="${W-PR}" y2="${zeroY.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>${bars}</svg>
+    <div class="fchart-legend"><span class="lg"><span class="sw" style="background:#c9705f"></span>queda</span><span class="lg"><span class="sw" style="background:var(--red)"></span>queda acima de 3%</span><span class="lg"><span class="sw" style="background:var(--teal)"></span>alta</span><span class="lg" style="margin-left:auto">% no mês</span></div>
+  </div>`;
+}
+function historyChart(id, A, opts){
+  const o = opts||{};
+  const series = [{name:'FIPE', color:'var(--accent)', area:true, dots:A.win.length<=26, pts:A.win.map(p=>({k:p.k, v:p.price}))}];
+  if(A.proj.length) series.push({name:'Projeção', color:'#b98a68', dash:true, width:1.6, pts:A.proj.map(p=>({k:p.k, v:p.price}))});
+  const legend = [{label:'FIPE', color:'var(--accent)'}];
+  if(A.proj.length) legend.push({label:`Projeção (${fmtPct(A.rProj)}/mês)`, color:'#b98a68', dash:true});
+  const hlines = [], markers = [];
+  if(o.paid){ hlines.push({v:o.paid, color:'var(--blue)', label:'você pagou'}); legend.push({label:'Preço pago', color:'var(--blue)', dash:true}); }
+  if(o.purchaseK!=null){ const p = A.win.find(x=>x.k===o.purchaseK); if(p) markers.push({k:p.k, v:p.price, color:'var(--blue)'}); }
+  return fLineChart(id, {series, hlines, markers, legend, note:'Toque e arraste no gráfico para ver cada mês.'});
+}
+function cdiChart(id, A){
+  const P = A.last.price, i = cdiMonthlyNet();
+  if(A.rProj==null) return '';
+  const car = Array.from({length:13}, (_,n)=>({k:A.last.k+n, v:P*Math.pow(1+A.rProj, n)}));
+  const inv = Array.from({length:13}, (_,n)=>({k:A.last.k+n, v:P*Math.pow(1+i, n)}));
+  const gap = inv[12].v - car[12].v;
+  return fLineChart(id, {h:160,
+    series:[{name:'Vendido e aplicado', color:'var(--teal)', pts:inv}, {name:'Carro (projeção)', color:'var(--accent)', dash:true, pts:car}],
+    legend:[{label:`Vendido e aplicado (${(cdiMonthlyNet()*100).toLocaleString('pt-BR',{maximumFractionDigits:2})}%/mês líq.)`, color:'var(--teal)'}, {label:'Carro (projeção FIPE)', color:'var(--accent)', dash:true}],
+    note:`Em 12 meses a diferença estimada é de <b style="color:var(--text)">${fmtMoneyInt(gap)}</b> a favor de vender e aplicar, sem contar manutenção e despesas. Considera só o dinheiro: se você vai precisar de outro carro, compare com os carros que acompanha.`});
+}
+function waitCostHTML(A, ctx){
+  const rows = waitCosts(A, ctx);
+  const max = Math.max(...rows.map(r=>r.total), 1);
+  const seg = (v,c)=> v>0 ? `<span style="width:${(v/max*100).toFixed(2)}%; background:${c}"></span>` : '';
+  const hasFix = ctx && ctx.fixedMonthly;
+  return `<div class="wait-box">
+    ${rows.map(r=>`<div class="wait-row">
+      <div class="top"><span>Esperar ${r.n} ${r.n===1?'mês':'meses'} para vender</span><b>${fmtMoneyInt(r.total)}</b></div>
+      <div class="stack">${seg(r.dep,'var(--accent)')}${seg(r.opp,'var(--teal)')}${seg(r.fix,'var(--blue)')}</div>
+    </div>`).join('')}
+    <div class="fchart-legend"><span class="lg"><span class="sw" style="background:var(--accent)"></span>desvalorização</span><span class="lg"><span class="sw" style="background:var(--teal)"></span>rendimento que deixa de ter</span>${hasFix?'<span class="lg"><span class="sw" style="background:var(--blue)"></span>manutenção e despesas</span>':''}</div>
+    ${hasFix ? `<div class="fchart-note">Manutenção e despesas pelos seus registros: ${fmtMoneyInt(ctx.fixedMonthly)}/mês (IPVA, seguro e licenciamento divididos por 12; sem financiamento e sem combustível).</div>` : ''}
+  </div>`;
+}
+function compareHTML(ownCar, ownA){
+  const rows = [];
+  if(ownCar && ownA && ownA.r12!=null) rows.push({mine:true, name:`Seu ${ownCar.info.model||fipeSpecShort(ownCar.info.fipe)} ${ownCar.info.fipe.yearName||''}`, A:ownA, onclick:''});
+  FIPE.watch.forEach(w=>{ const A = fipeAnalyze(w); if(A && A.r12!=null) rows.push({name:`${fipeSpecShort(w)} ${w.yearName||''}`, A, onclick:`openFipeDetail('${w.id}')`}); });
+  if(rows.length<2) return '';
+  rows.sort((a,b)=>b.A.r12-a.A.r12);
+  const maxAbs = Math.max(...rows.map(r=>Math.abs(r.A.r12)), 0.001);
+  return `<div class="cmp-box">${rows.map(r=>`<div class="cmp-row ${r.mine?'mine':''}" ${r.onclick?`onclick="${r.onclick}"`:''}>
+      <div class="top"><span class="n">${escapeHtml(r.name)}</span><span class="r" style="color:${r.A.r12<0?'var(--red)':'var(--teal)'}">${fmtPct(r.A.r12)}/mês</span></div>
+      <div class="s">FIPE ${fmtMoneyInt(r.A.last.price)} · 12 meses ${r.A.chg12 ? fmtPct(r.A.chg12.pct) : '—'}</div>
+      <div class="bar"><span style="width:${(Math.abs(r.A.r12)/maxAbs*100).toFixed(1)}%; background:${r.mine?'var(--accent)':'var(--blue)'}"></span></div>
+    </div>`).join('')}</div>
+    <div class="hint">Ordenado de quem desvaloriza menos para quem desvaloriza mais (média mensal dos últimos 12 meses).</div>`;
+}
+function statCardsHTML(A){
+  const c12 = A.chg12 || (A.span>0 ? {abs:A.last.price-A.first.price, pct:A.last.price/A.first.price-1, from:A.first} : null);
+  const c12lbl = A.chg12 ? 'Últimos 12 meses' : (c12 ? `Desde ${kLabel(c12.from.k)}` : 'Variação');
+  const p12 = A.proj.length ? A.proj[12] : null;
+  const cls = v => v<0 ? 'neg' : v>0 ? 'pos' : '';
+  return `
+    <div class="card" style="--bar-color:var(--accent)"><div class="label">FIPE hoje</div><div class="value num sm">${fmtMoneyInt(A.last.price)}</div><div class="sub">referência ${kLabel(A.last.k)}${A.chg1?` · mês ${fmtPct(A.chg1.pct)}`:''}</div></div>
+    <div class="card" style="--bar-color:var(--red)"><div class="label">${c12lbl}</div><div class="value num sm ${c12?cls(c12.pct):''}">${c12?fmtPct(c12.pct):'—'}</div><div class="sub">${c12?fmtSignedMoney(c12.abs):'precisa de 2+ meses'}</div></div>
+    <div class="card" style="--bar-color:var(--yellow)"><div class="label">Depreciação média</div><div class="value num sm ${A.rProj!=null?cls(A.rProj):''}">${A.rProj!=null?fmtPct(A.rProj)+'/mês':'—'}</div><div class="sub">${A.rProj!=null?'≈ '+fmtSignedMoney(A.rProj*A.last.price)+'/mês':''}</div></div>
+    <div class="card" style="--bar-color:var(--blue)"><div class="label">Projeção em 12 meses</div><div class="value num sm">${p12?fmtMoneyInt(p12.price):'—'}</div><div class="sub">${p12?fmtSignedMoney(p12.price-A.last.price):''}</div></div>`;
+}
+
+/* --- telas --- */
+let _fipeRenderQueued = false;
+function renderFipeSoon(){
+  if(_fipeRenderQueued) return;
+  _fipeRenderQueued = true;
+  requestAnimationFrame(()=>{ _fipeRenderQueued = false; renderFipeView(); });
+}
+function fipeLoadingHTML(spec){
+  const st = FIPE.loading[specKey(spec)];
+  const err = FIPE.errors[specKey(spec)];
+  let h = '';
+  if(st && st.total) h += `<div class="fipe-progress">Buscando histórico na FIPE… ${st.done}/${st.total} meses<div class="track"><div class="fill" style="width:${(st.done/st.total*100).toFixed(0)}%"></div></div></div>`;
+  else if(st) h += `<div class="fipe-progress">Consultando a FIPE…</div>`;
+  if(err) h += `<div class="fipe-msg">${err}</div>`;
+  return h;
+}
+function renderFipeOwn(){
+  const box = document.getElementById('fipeOwn');
+  const car = curCar();
+  if(!car){ box.innerHTML = emptyStateHTML('🚗','Adicione um veículo em Ajustes para analisar a FIPE dele.'); return; }
+  const name = `${car.info.brandLabel||''} ${car.info.model||''}`.trim();
+  const f = car.info.fipe;
+  if(!f || !f.yearCode){
+    box.innerHTML = `<div class="section-title first">Seu carro na FIPE</div>
+      <div class="flex-card"><div class="ttl">Vincule o ${escapeHtml(name)} à Tabela FIPE</div>
+      <div class="detail">Escolha a versão exata na FIPE e informe quanto você pagou. A data da compra, o km e os gastos vêm do que você já registra aqui no Painel.</div>
+      <button class="btn-primary" onclick="openFipeForm('own')">Vincular à FIPE</button></div>`;
+    return;
+  }
+  const ctx = ownContext(car);
+  const A = fipeAnalyze(f);
+  let h = `<div class="section-title first">Seu carro na FIPE</div>
+    <div class="fipe-head"><div style="min-width:0"><div class="nm">${escapeHtml(name)}</div>
+      <div class="vs">${escapeHtml(f.modelName)} · ${escapeHtml(f.yearName||'')}${FIPE.cache[specKey(f)] && FIPE.cache[specKey(f)].codeFipe ? ' · cód. '+FIPE.cache[specKey(f)].codeFipe : ''}</div></div>
+      <button class="ed" onclick="openFipeForm('own')">Editar</button></div>`;
+  h += fipeLoadingHTML(f);
+  if(!A){ box.innerHTML = h + (FIPE.loading[specKey(f)] ? '' : `<div class="empty-reminders">Nenhum valor da FIPE salvo ainda. Toque em "Atualizar dados da FIPE" abaixo quando estiver com internet.</div>`); return; }
+  h += `<div class="cards-grid">${statCardsHTML(A)}`;
+  if(ctx.purchasePrice){
+    const loss = A.last.price - ctx.purchasePrice;
+    const perMonth = ctx.monthsOwned ? loss/ctx.monthsOwned : null;
+    h += `<div class="card wide" style="--bar-color:var(--teal)"><div class="label">Desde a compra</div>
+      <div class="value num ${loss<0?'neg':'pos'}">${fmtSignedMoney(loss)} <span style="font-size:15px">(${fmtPct(loss/ctx.purchasePrice)})</span></div>
+      <div class="split"><span>Pago <b>${fmtMoneyInt(ctx.purchasePrice)}</b>${ctx.purchaseDate?' em '+fmtDateBR(ctx.purchaseDate):''}</span>${perMonth!=null?`<span>Média <b>${fmtSignedMoney(perMonth)}/mês</b></span>`:''}</div></div>`;
+  } else {
+    h += `<div class="card wide" style="--bar-color:var(--teal); cursor:pointer" onclick="openFipeForm('own')"><div class="label">Desde a compra</div><div class="value num">—</div><div class="sub">Toque para informar o preço que você pagou</div></div>`;
+  }
+  h += `</div>`;
+  const recs = fipeRecs(car, A, ctx);
+  if(recs.length) h += `<div class="section-title">Recomendações</div>` + recs.map(r=>`<div class="rec-card" style="--c:${FIPE_LV[r.lv]}"><div class="t">${r.t}</div><div class="d">${r.d}</div></div>`).join('');
+  h += `<div class="section-title">Histórico e projeção da FIPE</div>` + historyChart('own-hist', A, {paid:ctx.purchasePrice, purchaseK:ctx.purchaseK});
+  const bars = fBarsChart(A.monthly);
+  if(bars) h += `<div class="section-title">Variação mês a mês</div>` + bars;
+  if(A.rProj!=null){
+    h += `<div class="section-title">Vender agora ou esperar?</div><div class="hint">Quanto custa, em reais, adiar a venda (comparado a vender hoje pela FIPE e aplicar o dinheiro).</div>` + waitCostHTML(A, ctx);
+    h += `<div class="section-title">Vender e aplicar × ficar com o carro</div>` + cdiChart('own-cdi', A);
+  }
+  const cmp = compareHTML(car, A);
+  h += `<div class="section-title">Comparativo de depreciação</div>` + (cmp || `<div class="empty-reminders">Acompanhe outros carros (abaixo) para comparar quem desvaloriza menos e receber sugestões de troca.</div>`);
+  box.innerHTML = h;
+}
+function renderFipeWatch(){
+  const box = document.getElementById('fipeWatchList');
+  if(!FIPE.watch.length){ box.innerHTML = `<div class="empty-reminders">Nenhum carro acompanhado. Adicione modelos que você pensa em comprar ou só quer monitorar.</div>`; return; }
+  box.innerHTML = FIPE.watch.map(w=>{
+    const A = fipeAnalyze(w);
+    const st = FIPE.loading[specKey(w)];
+    const meta = A ? `${escapeHtml(w.yearName||'')} · ${A.rProj!=null ? fmtPct(A.rProj)+'/mês' : '—'}${A.chg12 ? ' · 12m '+fmtPct(A.chg12.pct) : ''}`
+      : (st ? 'carregando…' : (FIPE.errors[specKey(w)] ? 'sem dados ainda' : escapeHtml(w.yearName||'')));
+    return `<div class="list-item" onclick="openFipeDetail('${w.id}')">
+      <div class="ic">📈</div>
+      <div class="body"><div class="row1"><span class="ttl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${escapeHtml(w.nickname || fipeSpecShort(w))}</span><span class="val">${A ? fmtMoneyInt(A.last.price) : '—'}</span></div>
+      <div class="meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(w.modelName)}</div><div class="meta">${meta}</div></div>
+    </div>`;
+  }).join('');
+}
+function renderFipeSettingsBox(){
+  const s = FIPE.settings;
+  const i = cdiMonthlyNet();
+  const synced = FIPE.lastSync ? `Última atualização: hoje às ${new Date(FIPE.lastSync).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}` : (FIPE.offline ? 'Sem internet no momento' : 'Busca só os meses que ainda faltam');
+  document.getElementById('fipeSettingsBox').innerHTML = `
+    <div class="settings-item" onclick="openFipeSettings()"><div><div class="ttl">Comparação com o CDI</div><div class="sub">${Number(s.cdi).toLocaleString('pt-BR')}% a.a. · ${s.cdiPct}% do CDI · IR ${Number(s.ir).toLocaleString('pt-BR')}% → ${(i*100).toLocaleString('pt-BR',{maximumFractionDigits:2})}%/mês líquido</div></div><span class="arrow">›</span></div>
+    <div class="settings-item" onclick="openFipeSettings()"><div><div class="ttl">Período do histórico</div><div class="sub">${s.months} meses${s.token?' · com token da API':''}</div></div><span class="arrow">›</span></div>
+    <div class="settings-item" onclick="fipeSync(true); showToast('Atualizando dados da FIPE…')"><div><div class="ttl">Atualizar dados da FIPE</div><div class="sub">${synced}</div></div><span class="arrow">⟳</span></div>`;
+}
+function renderFipeAlert(){
+  const el = document.getElementById('fipeAlert');
+  if(!el) return;
+  const car = curCar();
+  if(!car || !car.info.fipe || !car.info.fipe.yearCode){ el.innerHTML=''; return; }
+  const A = fipeAnalyze(car.info.fipe);
+  if(!A){ el.innerHTML=''; return; }
+  const rec = fipeRecs(car, A, ownContext(car)).find(r=>r.trend);
+  if(!rec){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="fipe-alert" style="--c:${FIPE_LV[rec.lv]}" onclick="goView('fipe')">
+    <div class="tx"><div class="t">FIPE: ${rec.t}</div><div class="d">FIPE hoje ${fmtMoneyInt(A.last.price)} · toque para ver a análise</div></div><span class="ar">›</span></div>`;
+}
+function renderFipeView(){
+  if(!document.getElementById('fipeOwn') || !FIPE.settings) return;
+  renderFipeOwn(); renderFipeWatch(); renderFipeSettingsBox(); renderFipeAlert();
+  const det = document.getElementById('ov-fipe-detail');
+  if(det.classList.contains('show') && det.dataset.id) renderFipeDetail(det.dataset.id);
+}
+function goView(v){ const b = document.querySelector(`.navbtn[data-view="${v}"]`); if(b) b.click(); window.scrollTo(0,0); }
+
+/* --- detalhe de carro acompanhado --- */
+function openFipeDetail(id){
+  const det = document.getElementById('ov-fipe-detail');
+  det.dataset.id = id;
+  renderFipeDetail(id);
+  openOverlay('ov-fipe-detail');
+}
+function renderFipeDetail(id){
+  const w = FIPE.watch.find(x=>x.id===id);
+  const body = document.getElementById('fipeDetailBody');
+  if(!w){ body.innerHTML=''; return; }
+  const A = fipeAnalyze(w);
+  let h = `<h2 style="margin-bottom:4px">${escapeHtml(w.nickname || fipeSpecShort(w))}</h2>
+    <div class="hint" style="margin:0 0 14px">${escapeHtml(fipeSpecName(w))} · ${escapeHtml(w.yearName||'')}</div>`;
+  h += fipeLoadingHTML(w);
+  if(A){
+    h += `<div class="cards-grid">${statCardsHTML(A)}</div>`;
+    const own = curCar(), ownA = own && own.info.fipe && own.info.fipe.yearCode ? fipeAnalyze(own.info.fipe) : null;
+    if(ownA && ownA.r12!=null && A.r12!=null){
+      const d = A.r12 - ownA.r12;
+      const better = d > 0.002, worse = d < -0.002;
+      h += `<div class="rec-card" style="--c:${better?'var(--teal)':worse?'var(--yellow)':'var(--blue)'}"><div class="t">${better?'Desvaloriza menos que o seu carro':worse?'Desvaloriza mais que o seu carro':'Desvaloriza parecido com o seu carro'}</div>
+        <div class="d">Este: ${fmtPct(A.r12)}/mês · seu ${escapeHtml(own.info.model||fipeSpecShort(own.info.fipe))}: ${fmtPct(ownA.r12)}/mês. Diferença de FIPE hoje: ${fmtSignedMoney(A.last.price-ownA.last.price)}.
+        ${A.proj.length && ownA.proj.length ? ` Em 12 meses, pela projeção, a diferença seria ${fmtSignedMoney(A.proj[12].price-ownA.proj[12].price)}.` : ''}</div></div>`;
+    }
+    const lastM = A.monthly[A.monthly.length-1];
+    if(lastM && lastM.pct<=-0.03) h += `<div class="rec-card" style="--c:var(--red)"><div class="t">Queda forte em ${kLabel(lastM.k)}: ${fmtPct(lastM.pct)}</div><div class="d">Se você pensa em comprar, quedas fortes costumam abrir espaço para negociar.</div></div>`;
+    h += `<div class="section-title">Histórico e projeção</div>` + historyChart('det-hist', A);
+    const bars = fBarsChart(A.monthly);
+    if(bars) h += `<div class="section-title">Variação mês a mês</div>` + bars;
+  } else if(!FIPE.loading[specKey(w)]){
+    h += `<div class="empty-reminders">Ainda sem valores salvos para este carro.</div>`;
+  }
+  h += `<button class="btn-ghost" onclick="closeOverlay('ov-fipe-detail'); openFipeForm('watch','${w.id}')">Editar</button>
+    <button class="btn-secondary" onclick="removeWatch('${w.id}')">Parar de acompanhar</button>`;
+  body.innerHTML = h;
+}
+async function removeWatch(id){
+  if(!confirm('Parar de acompanhar este carro?')) return;
+  FIPE.watch = FIPE.watch.filter(x=>x.id!==id);
+  await fipeSaveWatch();
+  closeOverlay('ov-fipe-detail');
+  renderFipeView();
+  showToast('Removido.');
+}
+
+/* --- formulário: vincular / acompanhar --- */
+const FP = {mode:'own', carId:null, watchId:null, type:'cars', brand:null, model:null, year:null, pickStep:null, pickItems:[]};
+function openFipeForm(mode, watchId){
+  FP.mode = mode; FP.watchId = watchId || null; FP.carId = mode==='own' ? STATE.currentCarId : null;
+  FP.type = 'cars'; FP.brand = FP.model = FP.year = null;
+  const car = mode==='own' ? curCar() : null;
+  if(mode==='own' && !car){ openVehicleForm(); return; }
+  let src = null;
+  if(mode==='own' && car.info.fipe) src = car.info.fipe;
+  if(mode==='watch' && watchId) src = FIPE.watch.find(x=>x.id===watchId);
+  if(src){
+    FP.type = src.type||'cars';
+    FP.brand = {code:src.brandCode, name:src.brandName};
+    FP.model = {code:src.modelCode, name:src.modelName};
+    FP.year = {code:src.yearCode, name:src.yearName};
+  }
+  document.getElementById('fpTitle').textContent = mode==='own' ? (src ? 'Editar vínculo com a FIPE' : 'Vincular à FIPE') : (src ? 'Editar carro acompanhado' : 'Acompanhar um carro');
+  document.getElementById('fpHint').textContent = mode==='own'
+    ? `${car.info.brandLabel||''} ${car.info.model||''} ${car.info.year||''}: escolha a versão exata como aparece na FIPE.`
+    : 'Um carro que você pensa em comprar ou quer comparar com o seu.';
+  document.getElementById('fp-own-fields').style.display = mode==='own' ? 'block' : 'none';
+  document.getElementById('fp-delete').style.display = src ? 'block' : 'none';
+  document.getElementById('fp-delete').textContent = mode==='own' ? 'Remover vínculo com a FIPE' : 'Parar de acompanhar';
+  if(mode==='own'){
+    document.getElementById('fp-paid').value = (car.info.fipe && car.info.fipe.purchasePrice) || '';
+    const info = [];
+    info.push(car.info.purchaseDate ? `Data da compra: ${fmtDateBR(car.info.purchaseDate)}` : '⚠️ Sem data da compra no cadastro do veículo (Ajustes): sem ela não dá para calcular a perda por mês nem a FIPE da época.');
+    info.push(`Km atual: ${fmtKm(currentOdometer(car))} km`);
+    document.getElementById('fp-own-info').innerHTML = info.join('<br>') + '<br>Data e km vêm do cadastro do Painel.';
+  }
+  buildChips('fp-type-chips', FIPE_TYPES.map(t=>t.l), FIPE_TYPES.find(t=>t.k===FP.type).l, v=>{
+    const t = FIPE_TYPES.find(x=>x.l===v).k;
+    if(t!==FP.type){ FP.type = t; FP.brand = FP.model = FP.year = null; refreshFipeForm(); autoBrand(); }
+  });
+  refreshFipeForm();
+  openOverlay('ov-fipe-form');
+  if(!FP.brand) autoBrand();
+}
+async function autoBrand(){
+  // tenta achar a marca do carro do Painel na lista da FIPE (ex.: Volkswagen → "VW - VolksWagen")
+  if(FP.mode!=='own' || FP.brand) return;
+  const car = STATE.cars[FP.carId]; if(!car) return;
+  try{
+    const list = await fipeList(`/${FP.type}/brands`);
+    const want = normTxt(car.info.brandLabel);
+    if(!want || FP.brand) return;
+    const hit = list.find(b=>normTxt(b.name)===want) || list.find(b=>normTxt(b.name).split(' ').includes(want)) || list.find(b=>normTxt(b.name).includes(want));
+    if(hit){ FP.brand = {code:String(hit.code), name:hit.name}; refreshFipeForm(); }
+  }catch(e){}
+}
+function refreshFipeForm(){
+  document.getElementById('fp-brand').value = FP.brand ? FP.brand.name : '';
+  document.getElementById('fp-model').value = FP.model ? FP.model.name : '';
+  document.getElementById('fp-year').value = FP.year ? FP.year.name : '';
+  document.getElementById('fp-model').placeholder = FP.brand ? 'Toque para escolher' : 'Escolha a marca primeiro';
+  document.getElementById('fp-year').placeholder = FP.model ? 'Toque para escolher' : 'Escolha o modelo primeiro';
+  const pv = document.getElementById('fp-preview');
+  pv.innerHTML = '';
+  if(FP.year){
+    const spec = {type:FP.type, brandCode:FP.brand.code, modelCode:FP.model.code, yearCode:FP.year.code};
+    const A = fipeAnalyze(spec);
+    if(A){ pv.innerHTML = `FIPE ${kLabel(A.last.k)}: <b style="color:var(--text)">${fmtMoneyInt(A.last.price)}</b>`; return; }
+    pv.textContent = 'Consultando valor atual…';
+    const want = FP.year.code;
+    fipeGet(specPath(spec)).then(d=>{
+      if(!FP.year || FP.year.code!==want) return;
+      pv.innerHTML = `FIPE atual (${escapeHtml(d.referenceMonth||'')}): <b style="color:var(--text)">${escapeHtml(d.price||'—')}</b>${d.codeFipe?' · cód. '+escapeHtml(d.codeFipe):''}`;
+    }).catch(e=>{ if(FP.year && FP.year.code===want) pv.textContent = e.code==='offline' ? 'Sem internet para consultar agora.' : ''; });
+  }
+}
+async function fipePick(step){
+  if(step==='model' && !FP.brand){ showToast('Escolha a marca primeiro.'); return; }
+  if(step==='year' && !FP.model){ showToast('Escolha o modelo primeiro.'); return; }
+  FP.pickStep = step; FP.pickItems = [];
+  document.getElementById('pickTitle').textContent = step==='brand' ? 'Marca' : step==='model' ? 'Modelo / versão' : 'Ano / combustível';
+  const search = document.getElementById('pickSearch');
+  search.value = '';
+  if(step==='model' && !FP.model && FP.mode==='own'){
+    const car = STATE.cars[FP.carId];
+    if(car && car.info.model) search.value = car.info.model.split(' ')[0];
+  }
+  search.style.display = step==='year' ? 'none' : 'block';
+  document.getElementById('pickList').innerHTML = `<div class="info">Carregando lista da FIPE…</div>`;
+  openOverlay('ov-fipe-pick');
+  const path = step==='brand' ? `/${FP.type}/brands` : step==='model' ? `/${FP.type}/brands/${FP.brand.code}/models` : `/${FP.type}/brands/${FP.brand.code}/models/${FP.model.code}/years`;
+  try{
+    const list = await fipeList(path);
+    if(FP.pickStep!==step) return;
+    FP.pickItems = list.map(x=>({code:String(x.code), name:String(x.name)}));
+    if(step==='year') FP.pickItems.sort((a,b)=>b.name.localeCompare(a.name));
+    renderPickList();
+  }catch(e){
+    document.getElementById('pickList').innerHTML = `<div class="info">${e.code==='offline' ? 'Sem internet. Conecte-se para escolher na lista da FIPE.' : e.code==='limit' ? 'Limite diário da API FIPE atingido. Tente amanhã.' : 'Não foi possível carregar a lista da FIPE agora.'}</div>`;
+  }
+}
+function renderPickList(){
+  const q = normTxt(document.getElementById('pickSearch').value);
+  const words = q ? q.split(' ') : [];
+  const cur = FP[FP.pickStep];
+  const items = FP.pickItems.filter(it=>{ const n = normTxt(it.name); return words.every(w=>n.includes(w)); });
+  const shown = items.slice(0, 250);
+  document.getElementById('pickList').innerHTML = shown.length
+    ? shown.map(it=>`<div class="opt ${cur && cur.code===it.code ? 'sel' : ''}" data-code="${escapeHtml(it.code)}">${escapeHtml(it.name)}</div>`).join('') + (items.length>shown.length ? `<div class="info">Mais ${items.length-shown.length} resultados: refine a busca.</div>` : '')
+    : `<div class="info">Nada encontrado${q ? ' para "'+escapeHtml(document.getElementById('pickSearch').value)+'"' : ''}.</div>`;
+  document.querySelectorAll('#pickList .opt').forEach(o=>o.addEventListener('click', ()=>{
+    const it = FP.pickItems.find(x=>x.code===o.dataset.code);
+    if(FP.pickStep==='brand'){ if(!FP.brand || FP.brand.code!==it.code){ FP.model = FP.year = null; } FP.brand = it; }
+    else if(FP.pickStep==='model'){ if(!FP.model || FP.model.code!==it.code){ FP.year = null; } FP.model = it; }
+    else FP.year = it;
+    const next = FP.pickStep==='brand' && !FP.model ? 'model' : FP.pickStep==='model' && !FP.year ? 'year' : null;
+    closeFipePick();
+    refreshFipeForm();
+    if(next) fipePick(next);
+  }));
+}
+function closeFipePick(){ document.getElementById('ov-fipe-pick').classList.remove('show'); FP.pickStep = null; }
+async function saveFipeForm(){
+  if(!FP.brand || !FP.model || !FP.year){ showToast('Escolha marca, modelo e ano.'); return; }
+  const spec = {type:FP.type, brandCode:FP.brand.code, brandName:FP.brand.name, modelCode:FP.model.code, modelName:FP.model.name, yearCode:FP.year.code, yearName:FP.year.name};
+  if(FP.mode==='own'){
+    const car = STATE.cars[FP.carId]; if(!car) return;
+    spec.purchasePrice = Number(document.getElementById('fp-paid').value) || null;
+    car.info.fipe = spec;
+    await persistCar(FP.carId);
+  } else {
+    if(FP.watchId){ const w = FIPE.watch.find(x=>x.id===FP.watchId); Object.assign(w, spec); }
+    else FIPE.watch.push({id:uid(), addedAt:Date.now(), ...spec});
+    await fipeSaveWatch();
+  }
+  closeOverlay('ov-fipe-form');
+  renderFipeView();
+  showToast('Salvo. Buscando histórico da FIPE…');
+  fipeSync();
+}
+async function deleteFipeForm(){
+  if(FP.mode==='own'){
+    if(!confirm('Remover o vínculo deste carro com a FIPE?')) return;
+    const car = STATE.cars[FP.carId]; if(car){ delete car.info.fipe; await persistCar(FP.carId); }
+  } else {
+    if(!confirm('Parar de acompanhar este carro?')) return;
+    FIPE.watch = FIPE.watch.filter(x=>x.id!==FP.watchId);
+    await fipeSaveWatch();
+  }
+  closeOverlay('ov-fipe-form');
+  renderFipeView();
+}
+
+/* --- ajustes da análise --- */
+function openFipeSettings(){
+  const s = FIPE.settings;
+  document.getElementById('fs-cdi').value = s.cdi;
+  document.getElementById('fs-pct').value = s.cdiPct;
+  document.getElementById('fs-ir').value = s.ir;
+  document.getElementById('fs-token').value = s.token||'';
+  document.getElementById('fs-cdi-info').textContent = s.cdiDate ? `CDI do Banco Central em ${s.cdiDate}.` : 'Valor padrão: 13,65% a.a. (Selic em 13,75% desde 04/11/2026). Toque em "Buscar CDI atual" para pegar o número oficial.';
+  FP.months = s.months;
+  buildChips('fs-months-chips', ['12 meses','24 meses','36 meses'], s.months+' meses', v=>{ FP.months = parseInt(v); });
+  openOverlay('ov-fipe-settings');
+}
+async function saveFipeSettings(){
+  const s = FIPE.settings;
+  const cdi = Number(document.getElementById('fs-cdi').value), pct = Number(document.getElementById('fs-pct').value), ir = Number(document.getElementById('fs-ir').value);
+  if(cdi>0) s.cdi = cdi;
+  if(pct>0) s.cdiPct = pct;
+  if(ir>=0 && ir<100) s.ir = ir;
+  s.token = document.getElementById('fs-token').value.trim();
+  const moreMonths = FP.months > s.months;
+  s.months = FP.months || s.months;
+  await fipeSaveSettings();
+  closeOverlay('ov-fipe-settings');
+  renderFipeView();
+  showToast('Ajustes salvos.');
+  if(moreMonths) fipeSync();
+}
+async function fetchCDI(manual){
+  // série 4389 do Banco Central: CDI anualizado (base 252)
+  try{
+    const res = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4389/dados/ultimos/1?formato=json');
+    if(!res.ok) throw new Error();
+    const d = await res.json();
+    const v = Number(String(d[0].valor).replace(',','.'));
+    if(!(v>0)) throw new Error();
+    FIPE.settings.cdi = v; FIPE.settings.cdiDate = d[0].data; FIPE.settings.cdiUpdatedAt = Date.now();
+    await fipeSaveSettings();
+    if(manual){
+      document.getElementById('fs-cdi').value = v;
+      document.getElementById('fs-cdi-info').textContent = `CDI do Banco Central em ${d[0].data}.`;
+      showToast(`CDI atualizado: ${v.toLocaleString('pt-BR')}% a.a.`);
+    }
+    renderFipeSoon();
+  }catch(e){
+    if(manual) showToast('Não consegui buscar o CDI agora. Digite a taxa manualmente.');
+  }
+}
+function fipeAutoCDI(){
+  const s = FIPE.settings;
+  if(!s.cdiUpdatedAt || Date.now()-s.cdiUpdatedAt > 7*86400e3) fetchCDI(false);
+}
+document.querySelector('.navbtn[data-view="fipe"]').addEventListener('click', ()=>fipeSync());
 
 /* ============ INIT ============ */
 /* ============ APP INSTALÁVEL (PWA) ============ */
@@ -1943,9 +2888,12 @@ if(navigator.storage && navigator.storage.persist){ navigator.storage.persist().
 
 (async function init(){
   await loadAll();
+  await fipeLoad();
   await processRecurring();
   renderAll();
   refreshInstallItem();
+  fipeSync();
+  fipeAutoCDI();
 })();
 // ao voltar para o app (ex: aberto de novo no dia seguinte), lança recorrentes vencidas e atualiza datas
 document.addEventListener('visibilitychange', async ()=>{
