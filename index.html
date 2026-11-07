@@ -2821,7 +2821,7 @@ async function fipePick(step){
   try{
     const list = await fipeList(path);
     if(FP.pickStep!==step) return;
-    FP.pickItems = list.map(x=>({code:String(x.code), name:String(x.name)}));
+    FP.pickItems = list.map(x=>({code:String(x.code), name:String(x.name).replace(/^32000\b/, 'Zero km')}));
     if(step==='year') FP.pickItems.sort((a,b)=>b.name.localeCompare(a.name));
     renderPickList();
   }catch(e){
