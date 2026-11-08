@@ -508,7 +508,7 @@ a.link{color:var(--teal);}
     <button class="btn-ghost" style="margin-top:0" onclick="openFipeForm('watch')">+ Acompanhar um carro</button>
     <div class="section-title">Ajustes da análise</div>
     <div class="settings-group" id="fipeSettingsBox"></div>
-    <div class="hint" style="margin-top:4px">Valores da Tabela FIPE consultados pela API pública Parallelum; os meses mais antigos, que ela só libera no plano pago, vêm da BrasilAPI (atualiza uma vez por mês). Projeções seguem o ritmo de queda dos últimos 12 meses e são estimativas, não garantia de preço de venda.</div>
+    <div class="hint" style="margin-top:4px">Valores da Tabela FIPE consultados pela API pública Parallelum; os meses mais antigos, que ela só libera no plano pago, vêm do site oficial da FIPE ou da BrasilAPI (atualiza uma vez por mês). Projeções seguem o ritmo de queda dos últimos 12 meses e são estimativas, não garantia de preço de venda.</div>
   </div>
 
 </main>
@@ -2137,13 +2137,17 @@ const FIPE_BASE = 'https://fipe.parallelum.com.br/api/v2';
 // A Parallelum passou a cobrar pelo histórico antigo (HTTP 402 no plano gratuito). Esses meses são buscados
 // na BrasilAPI, que consulta a mesma Tabela FIPE pelo código FIPE + código do mês (tabela_referencia).
 const BRASILAPI_FIPE = 'https://brasilapi.com.br/api/fipe';
+// Primeira opção para esses meses: a API interna do site oficial da FIPE, chamada direto do navegador
+// (POST "simples", parâmetros na URL, como faz usados.umluizlima.dev). Usa os mesmos códigos de marca/modelo/ano.
+const FIPE_OFICIAL = 'https://veiculos.fipe.org.br/api/veiculos';
+const FIPE_TIPO_OFICIAL = {cars:1, motorcycles:2, trucks:3};
 const FIPE_TYPES = [{k:'cars', l:'Carro'}, {k:'motorcycles', l:'Moto'}, {k:'trucks', l:'Caminhão'}];
 const MESES_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const MES_CURTO = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 const FIPE_LV = {red:'var(--red)', yellow:'var(--yellow)', teal:'var(--teal)', blue:'var(--blue)'};
 const FIPE_LV_ORDER = {red:0, yellow:1, teal:2, blue:3};
 
-const FIPE = { settings:null, watch:[], cache:{}, refs:null, lists:{}, loading:{}, errors:{}, offline:false, lastSync:null };
+const FIPE = { settings:null, watch:[], cache:{}, refs:null, lists:{}, loading:{}, errors:{}, offline:false, lastSync:null, oficialTabelas:null };
 
 async function fipeLoad(){
   FIPE.settings = Object.assign({cdi:13.65, cdiPct:100, ir:15, months:24, token:'', cdiUpdatedAt:null, cdiDate:null}, await dbGet('fipe_settings', {}));
@@ -2222,6 +2226,57 @@ async function fipeGet(path){
   if(lastErr.code!=='paid' && (lastErr.code!=='http' || (lastErr.status!==400 && lastErr.status!==404))) FIPE.lastError = lastErr.detail;
   throw lastErr;
 }
+/* --- site oficial da FIPE --- */
+async function fipeOficialPost(path, params){
+  const url = FIPE_OFICIAL + path + (params ? '?'+new URLSearchParams(params) : '');
+  const ctl = new AbortController();
+  const timer = setTimeout(()=>ctl.abort(), 15000);
+  let res;
+  try{ res = await fetch(url, {method:'POST', headers:{'content-type':'application/x-www-form-urlencoded'}, signal:ctl.signal}); }
+  catch(e){
+    if(navigator.onLine===false) throw fipeErr('offline', 'sem internet');
+    throw fipeErr('network', ctl.signal.aborted ? 'site da FIPE demorou demais para responder' : 'site da FIPE recusou a conexão');
+  }finally{ clearTimeout(timer); }
+  if(!res.ok){
+    let body = ''; try{ body = (await res.text()).slice(0,100).replace(/\s+/g,' '); }catch(e){}
+    throw fipeErr('http', `site da FIPE HTTP ${res.status}${body ? ': '+body : ''}`, res.status);
+  }
+  const text = await res.text();
+  try{ return JSON.parse(text); }
+  catch(e){ throw fipeErr('format', 'site da FIPE: resposta não é JSON: '+text.slice(0,60).replace(/\s+/g,' ')); }
+}
+// lista de meses do site oficial ({code, k}), guardada por 12h
+async function fipeOficialTabelas(){
+  if(FIPE.oficialTabelas && Date.now()-FIPE.oficialTabelas.at < 12*3600e3) return FIPE.oficialTabelas.list;
+  const d = await fipeOficialPost('/ConsultarTabelaDeReferencia');
+  if(!Array.isArray(d)) throw fipeErr('format', 'site da FIPE: lista de meses inesperada');
+  const list = d.map(x=>{ const p = parseRefMonth(x.Mes); return p ? {code:String(x.Codigo), k:ymKey(p.y, p.m)} : null; }).filter(Boolean);
+  FIPE.oficialTabelas = {list, at:Date.now()};
+  return list;
+}
+// preço de um mês no site oficial. Retorna {price, codeFipe} ou null se o veículo não existe naquele mês.
+async function fipeOficialPrice(spec, r){
+  let code = r.code;
+  try{ const m = (await fipeOficialTabelas()).find(x=>x.k===r.k); if(m) code = m.code; }
+  catch(e){ if(e.code==='offline') throw e; } // sem a lista, usa o código da Parallelum e confere o mês na resposta
+  const [ano, comb] = String(spec.yearCode||'').split('-');
+  const d = await fipeOficialPost('/ConsultarValorComTodosParametros', {
+    codigoTabelaReferencia:code, codigoMarca:spec.brandCode, codigoModelo:spec.modelCode,
+    codigoTipoVeiculo:FIPE_TIPO_OFICIAL[spec.type||'cars']||1, anoModelo:ano, codigoTipoCombustivel:comb,
+    tipoVeiculo:null, modeloCodigoExterno:null, tipoConsulta:'tradicional'
+  });
+  if(d && d.erro){
+    if(normTxt(d.erro).replace(/ /g,'')==='nadaencontrado') return null;
+    throw fipeErr('http', 'site da FIPE: '+String(d.erro).slice(0,80));
+  }
+  const price = parseFipePrice(d && d.Valor);
+  if(!price) throw fipeErr('format', 'site da FIPE: resposta sem valor');
+  const ref = parseRefMonth(d.MesReferencia);
+  if(ref && ymKey(ref.y, ref.m)!==r.k) throw fipeErr('format', `site da FIPE devolveu ${kLabel(ymKey(ref.y, ref.m))} no lugar de ${kLabel(r.k)}`);
+  return {price, codeFipe:d.CodigoFipe ? String(d.CodigoFipe).trim() : null};
+}
+
+/* --- BrasilAPI --- */
 // chamada crua à BrasilAPI: devolve a resposta (status + texto) ou lança erro de conexão
 async function brasilApiFetch(path){
   const ctl = new AbortController();
@@ -2386,7 +2441,43 @@ function loadSeries(spec, extraKeys, force){
         break;
       }
     }
-    // meses que a Parallelum só libera no plano pago: busca na BrasilAPI
+    // meses que a Parallelum só libera no plano pago: 1º site oficial da FIPE (um mês por segundo, como o
+    // site oficial aguenta), 2º BrasilAPI para o que sobrar
+    let ofFail = null;
+    if(paidList.length){
+      st.total += paidList.length; renderFipeSoon();
+      paidList.sort((a,b)=>b.k-a.k);
+      const left = [];
+      let gotOne = false, errSeq = 0;
+      for(let i=0; i<paidList.length; i++){
+        const r = paidList[i];
+        let res;
+        try{ res = await fipeOficialPrice(spec, r); }
+        catch(e){ if(e.code==='offline') throw e; res = e; }
+        st.done++;
+        const rest = paidList.slice(i+1);
+        if(res instanceof Error){
+          ofFail = res; left.push(r); errSeq++;
+          // site fora ou bloqueando: o resto vai para a BrasilAPI
+          if(!gotOne || errSeq>=3){ left.push(...rest); st.done += rest.length; break; }
+        }else if(res){
+          errSeq = 0; gotOne = true;
+          c.prices[r.code] = res.price; delete c.missing[r.code]; if(c.paid) delete c.paid[r.code];
+          (c.kOf || (c.kOf = {}))[r.code] = r.k;
+          if(res.codeFipe && !c.codeFipe) c.codeFipe = res.codeFipe;
+        }else{
+          errSeq = 0;
+          c.missing[r.code] = Date.now(); if(c.paid) delete c.paid[r.code];
+          if(gotOne){
+            // chegou antes do lançamento desse ano-modelo
+            rest.forEach(x=>{ c.missing[x.code] = Date.now(); if(c.paid) delete c.paid[x.code]; }); st.done += rest.length; break;
+          }
+        }
+        fipeSaveCache(); renderFipeSoon();
+        if(rest.length) await new Promise(ok=>setTimeout(ok, 1000));
+      }
+      paidList.splice(0, paidList.length, ...left);
+    }
     let paidFail = 0, lastPaidFail = null, diag = '';
     if(paidList.length){
       st.total += paidList.length; renderFipeSoon();
@@ -2439,7 +2530,7 @@ function loadSeries(spec, extraKeys, force){
     c.updatedAt = Date.now();
     fipeSaveCache();
     const msgs = [];
-    if(paidFail) msgs.push(`${paidFail} ${paidFail===1?'mês mais antigo não veio':'meses mais antigos não vieram'}: a API gratuita da FIPE (Parallelum) passou a liberar só os meses recentes, e a fonte reserva (BrasilAPI) não respondeu (${lastPaidFail.detail}). ${diag ? diag+' ' : ''}O app tenta de novo em alguns dias; os meses já baixados ficam salvos.`);
+    if(paidFail) msgs.push(`${paidFail} ${paidFail===1?'mês mais antigo não veio':'meses mais antigos não vieram'}: a API gratuita da FIPE (Parallelum) passou a liberar só os meses recentes${ofFail ? `, o site oficial da FIPE não respondeu (${ofFail.detail})` : ''} e a BrasilAPI também não (${lastPaidFail.detail}). ${diag ? diag+' ' : ''}O app tenta de novo em alguns dias; os meses já baixados ficam salvos.`);
     if(transient) msgs.push(`${transient} ${transient===1?'mês não veio':'meses não vieram'} porque a API da FIPE não respondeu (${lastTransient.detail}). Toque em "Atualizar dados da FIPE" mais tarde para completar.`);
     if(msgs.length) throw fipeErr('partial', msgs.join(' '));
   })().then(()=>{ delete FIPE.errors[key]; })
@@ -3194,9 +3285,27 @@ async function fipeTestConn(){
     try{ const d = fipeArr(await fipeGetFrom(base, '/cars/brands'+ref)); out.push(`${host}: ok (${d.length} marcas)`); }
     catch(e){ out.push(`${host}: ${e.detail||e.message}`); }
   }
+  sub.style.whiteSpace = 'pre-line';
+  sub.textContent = out.join('\n') + '\nTestando site oficial da FIPE…';
+  const p0 = FIPE.refs && !FIPE.refs.synthetic ? FIPE.refs.list[0] : null;
+  try{
+    FIPE.oficialTabelas = null;
+    const t = await fipeOficialTabelas();
+    let line = `site da FIPE, meses: ok (${t.length})`;
+    if(p0){ const same = t.find(x=>x.k===p0.k); line += same ? (same.code===p0.code ? ` · códigos iguais aos da Parallelum` : ` · códigos diferentes (${kLabel(p0.k)}: ${same.code} x ${p0.code}), o app converte`) : ''; }
+    out.push(line);
+  }catch(e){ out.push(`site da FIPE, meses: ${e.detail||e.message}`); }
+  const specEnt = Object.keys(FIPE.cache).find(k=>{ const v = FIPE.cache[k]; return v && v.paid && Object.keys(v.paid).length; }) || Object.keys(FIPE.cache)[0];
+  const oldRef = FIPE.refs && FIPE.refs.list[12];
+  if(specEnt && oldRef){
+    const [type, brandCode, modelCode, yearCode] = specEnt.split('|');
+    try{
+      const d = await fipeOficialPrice({type, brandCode, modelCode, yearCode}, oldRef);
+      out.push(`site da FIPE, preço em ${kLabel(oldRef.k)}: ${d ? 'ok ('+fmtMoneyInt(d.price)+')' : 'veículo não existia nesse mês'}`);
+    }catch(e){ out.push(`site da FIPE, preço em ${kLabel(oldRef.k)}: ${e.detail||e.message}`); }
+  }
   sub.textContent = out.join('\n') + '\nTestando BrasilAPI…';
   // BrasilAPI: lista de meses (confere se os códigos batem com os da Parallelum) e preço com e sem mês antigo
-  const p0 = FIPE.refs && !FIPE.refs.synthetic ? FIPE.refs.list[0] : null;
   try{
     const res = await brasilApiFetch('/tabelas/v1');
     if(!res.ok) throw await brasilApiErr(res);
