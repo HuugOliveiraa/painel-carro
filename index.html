@@ -508,7 +508,7 @@ a.link{color:var(--teal);}
     <button class="btn-ghost" style="margin-top:0" onclick="openFipeForm('watch')">+ Acompanhar um carro</button>
     <div class="section-title">Ajustes da análise</div>
     <div class="settings-group" id="fipeSettingsBox"></div>
-    <div class="hint" style="margin-top:4px">Valores da Tabela FIPE consultados pela API pública Parallelum (atualiza uma vez por mês). Projeções seguem o ritmo de queda dos últimos 12 meses e são estimativas, não garantia de preço de venda.</div>
+    <div class="hint" style="margin-top:4px">Valores da Tabela FIPE consultados pela API pública Parallelum; os meses mais antigos, que ela só libera no plano pago, vêm da BrasilAPI (atualiza uma vez por mês). Projeções seguem o ritmo de queda dos últimos 12 meses e são estimativas, não garantia de preço de venda.</div>
   </div>
 
 </main>
@@ -2066,7 +2066,7 @@ async function bumpBackupCounter(){
 }
 async function exportData(){
   const fichaImgs = await avExportImgs();
-  const payload = { exportedAt: new Date().toISOString(), settings: STATE.settings, cars: STATE.cars, fipe: {watch: FIPE.watch, settings: FIPE.settings}, fichaImgs };
+  const payload = { exportedAt: new Date().toISOString(), settings: STATE.settings, cars: STATE.cars, fipe: {watch: FIPE.watch, settings: FIPE.settings, cache: FIPE.cache}, fichaImgs };
   const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2100,6 +2100,19 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
       (data.fipe.watch||[]).forEach(w=>{ const i = FIPE.watch.findIndex(x=>x.id===w.id); if(i>-1) FIPE.watch[i] = w; else FIPE.watch.push(w); });
       await fipeSaveWatch();
       if(data.fipe.settings){ Object.assign(FIPE.settings, data.fipe.settings); await fipeSaveSettings(); }
+      if(data.fipe.cache && typeof data.fipe.cache==='object'){
+        // preços já baixados: junta com os do aparelho (o histórico antigo pode não estar mais disponível de graça)
+        for(const [k, v] of Object.entries(data.fipe.cache)){
+          if(!v || typeof v!=='object' || !v.prices) continue;
+          const cur = FIPE.cache[k];
+          if(!cur){ FIPE.cache[k] = Object.assign({missing:{}}, v); continue; }
+          cur.prices = Object.assign({}, v.prices, cur.prices||{});
+          cur.kOf = Object.assign({}, v.kOf||{}, cur.kOf||{});
+          if(!cur.codeFipe && v.codeFipe) cur.codeFipe = v.codeFipe;
+          Object.keys(cur.prices).forEach(code=>{ if(cur.missing) delete cur.missing[code]; if(cur.paid) delete cur.paid[code]; });
+        }
+        await dbSet('fipe_cache', FIPE.cache);
+      }
     }
     if(data.settings && data.settings.selectedCarId && STATE.cars[data.settings.selectedCarId]){
       STATE.currentCarId = data.settings.selectedCarId;
@@ -2121,6 +2134,9 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
 // Dados da Tabela FIPE pela API pública Parallelum (v2). Cada mês do histórico é uma consulta
 // com ?reference=<código do mês>; os meses baixados ficam salvos no celular e não são buscados de novo.
 const FIPE_BASE = 'https://fipe.parallelum.com.br/api/v2';
+// A Parallelum passou a cobrar pelo histórico antigo (HTTP 402 no plano gratuito). Esses meses são buscados
+// na BrasilAPI, que consulta a mesma Tabela FIPE pelo código FIPE + código do mês (tabela_referencia).
+const BRASILAPI_FIPE = 'https://brasilapi.com.br/api/fipe';
 const FIPE_TYPES = [{k:'cars', l:'Carro'}, {k:'motorcycles', l:'Moto'}, {k:'trucks', l:'Caminhão'}];
 const MESES_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const MES_CURTO = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -2179,6 +2195,7 @@ async function fipeGetFrom(base, path){
     throw fipeErr('network', 'conexão recusada pelo navegador (bloqueio de rede, extensão ou CORS)');
   }finally{ clearTimeout(timer); }
   if(res.status===429) throw fipeErr('limit', 'HTTP 429', 429);
+  if(res.status===402) throw fipeErr('paid', 'HTTP 402: mês fora do plano gratuito da API Parallelum', 402);
   if(!res.ok){
     let body = ''; try{ body = (await res.text()).slice(0,80).replace(/\s+/g,' '); }catch(e){}
     throw fipeErr('http', `HTTP ${res.status}${body ? ': '+body : ''}`, res.status);
@@ -2197,13 +2214,40 @@ async function fipeGet(path){
       return d;
     }catch(e){
       // mostra o erro mais informativo: uma resposta da API vale mais que a falha de conexão do endereço reserva
-      if(!lastErr || (lastErr.code!=='http' && e.code==='http') || e.code==='limit' || e.code==='offline') lastErr = e;
-      // 400/404 = mês ou item que não existe na FIPE (resposta válida); limite e sem internet valem para os dois endereços
-      if(e.code==='offline' || e.code==='limit' || (e.code==='http' && (e.status===400 || e.status===404))) break;
+      if(!lastErr || (lastErr.code!=='http' && e.code==='http') || e.code==='limit' || e.code==='offline' || e.code==='paid') lastErr = e;
+      // 400/404 = mês ou item que não existe na FIPE (resposta válida); limite, plano pago e sem internet valem para os dois endereços
+      if(e.code==='offline' || e.code==='limit' || e.code==='paid' || (e.code==='http' && (e.status===400 || e.status===404))) break;
     }
   }
-  if(lastErr.code!=='http' || (lastErr.status!==400 && lastErr.status!==404)) FIPE.lastError = lastErr.detail;
+  if(lastErr.code!=='paid' && (lastErr.code!=='http' || (lastErr.status!==400 && lastErr.status!==404))) FIPE.lastError = lastErr.detail;
   throw lastErr;
+}
+// preço de um mês na BrasilAPI. Retorna {price, ref} ou null se o veículo não existe naquele mês.
+async function brasilApiPrice(spec, codeFipe, refCode){
+  const ctl = new AbortController();
+  const timer = setTimeout(()=>ctl.abort(), 15000);
+  let res;
+  try{ res = await fetch(`${BRASILAPI_FIPE}/preco/v1/${encodeURIComponent(codeFipe)}?tabela_referencia=${encodeURIComponent(refCode)}`, {signal:ctl.signal}); }
+  catch(e){
+    if(navigator.onLine===false) throw fipeErr('offline', 'sem internet');
+    throw fipeErr('network', ctl.signal.aborted ? 'BrasilAPI demorou demais para responder' : 'BrasilAPI recusou a conexão');
+  }finally{ clearTimeout(timer); }
+  if(res.status===400 || res.status===404) return null;
+  if(!res.ok) throw fipeErr('http', 'BrasilAPI HTTP '+res.status, res.status);
+  let arr;
+  try{ arr = await res.json(); }catch(e){ throw fipeErr('format', 'BrasilAPI: resposta não é JSON'); }
+  if(!Array.isArray(arr)) throw fipeErr('format', 'BrasilAPI: resposta inesperada');
+  // o código FIPE traz todos os anos-modelo daquela versão: separa o ano (e o combustível, se houver mais de um)
+  const year = Number(String(spec.yearCode||'').split('-')[0]);
+  let cands = arr.filter(x=>Number(x.anoModelo)===year);
+  if(cands.length>1){
+    const fuel = normTxt(String(spec.yearName||'').replace(/^\s*\d+\s*/,''));
+    const f = cands.filter(x=>normTxt(x.combustivel)===fuel);
+    if(f.length) cands = f;
+  }
+  if(!cands.length) return null;
+  const price = parseFipePrice(cands[0].valor);
+  return price ? {price, ref:parseRefMonth(cands[0].mesReferencia)} : null;
 }
 function fipeArr(d){ if(Array.isArray(d)) return d; throw fipeErr('format', 'resposta inesperada: '+JSON.stringify(d).slice(0,80)); }
 function parseFipePrice(s){
@@ -2291,6 +2335,8 @@ function loadSeries(spec, extraKeys, force){
     // mês ainda não publicado (os 2 mais recentes) é consultado de novo depois de 12h
     const todo = wanted.filter(r=>{
       if(r.code in c.prices) return false;
+      // mês que nem a Parallelum (plano pago) nem a BrasilAPI entregaram: tenta de novo depois de 3 dias
+      if(c.paid && r.code in c.paid) return force || Date.now()-c.paid[r.code] > 3*86400e3;
       if(!(r.code in c.missing)) return true;
       const age = Date.now()-c.missing[r.code];
       return force || age > (newest2.includes(r.code) ? 12*3600e3 : 3*86400e3);
@@ -2299,6 +2345,7 @@ function loadSeries(spec, extraKeys, force){
     if(!todo.length) return;
     renderFipeSoon();
     let hadSuccess = Object.keys(c.prices).length>0, transient = 0, lastTransient = null;
+    const paidList = [];
     for(let i=0; i<todo.length; i+=4){
       const batch = todo.slice(i, i+4);
       const results = await Promise.all(batch.map(async r=>{
@@ -2310,11 +2357,13 @@ function loadSeries(spec, extraKeys, force){
             const ref = parseRefMonth(d.referenceMonth);
             if(ref){ (c.kOf || (c.kOf = {}))[r.code] = ymKey(ref.y, ref.m); }
             if(d.codeFipe) c.codeFipe = d.codeFipe;
+            if(c.paid) delete c.paid[r.code];
             return 'ok';
           }
           c.missing[r.code] = Date.now(); return 'miss';
         }catch(e){
           if(e.code==='http' && (e.status===400 || e.status===404)){ c.missing[r.code] = Date.now(); return 'miss'; }
+          if(e.code==='paid'){ paidList.push(r); return 'paid'; }
           if(e.code==='offline' || e.code==='limit') throw e;
           transient++; lastTransient = e; return 'skip';   // API instável: tenta esse mês de novo na próxima atualização
         }finally{ st.done++; }
@@ -2327,12 +2376,55 @@ function loadSeries(spec, extraKeys, force){
         break;
       }
     }
+    // meses que a Parallelum só libera no plano pago: busca na BrasilAPI
+    let paidFail = 0, lastPaidFail = null;
+    if(paidList.length){
+      st.total += paidList.length; renderFipeSoon();
+      if(!c.codeFipe){
+        try{ const d = await fipeGet(specPath(spec)); if(d && d.codeFipe) c.codeFipe = d.codeFipe; }
+        catch(e){ if(e.code==='offline' || e.code==='limit') throw e; }
+      }
+      const markPaid = rs=>rs.forEach(r=>{ (c.paid || (c.paid = {}))[r.code] = Date.now(); });
+      paidList.sort((a,b)=>b.k-a.k);
+      if(!c.codeFipe){ markPaid(paidList); paidFail = paidList.length; lastPaidFail = fipeErr('format', 'código FIPE do veículo não encontrado'); st.done += paidList.length; }
+      else{
+        let gotOne = false;
+        for(let i=0; i<paidList.length; i+=3){
+          const batch = paidList.slice(i, i+3);
+          const res = await Promise.all(batch.map(async r=>{
+            try{
+              const d = await brasilApiPrice(spec, c.codeFipe, r.code);
+              if(d){
+                c.prices[r.code] = d.price; delete c.missing[r.code]; if(c.paid) delete c.paid[r.code];
+                if(d.ref){ (c.kOf || (c.kOf = {}))[r.code] = ymKey(d.ref.y, d.ref.m); }
+                return 'ok';
+              }
+              c.missing[r.code] = Date.now(); if(c.paid) delete c.paid[r.code]; return 'miss';
+            }catch(e){
+              if(e.code==='offline') throw e;
+              markPaid([r]); paidFail++; lastPaidFail = e; return 'fail';
+            }finally{ st.done++; }
+          }));
+          fipeSaveCache(); renderFipeSoon();
+          if(res.includes('ok')) gotOne = true;
+          const rest = paidList.slice(i+3);
+          if(!gotOne && res.every(x=>x==='fail')){
+            // a BrasilAPI não está respondendo: não espera o resto, tenta de novo outro dia
+            markPaid(rest); paidFail += rest.length; st.done += rest.length; break;
+          }
+          if(gotOne && res.every(x=>x==='miss')){
+            // chegou antes do lançamento desse ano-modelo
+            rest.forEach(r=>{ c.missing[r.code] = Date.now(); if(c.paid) delete c.paid[r.code]; }); st.done += rest.length; break;
+          }
+        }
+      }
+    }
     c.updatedAt = Date.now();
     fipeSaveCache();
-    if(transient){
-      const e = fipeErr('partial', `${transient} ${transient===1?'mês não veio':'meses não vieram'} porque a API da FIPE está instável (${lastTransient.detail}). Toque em "Atualizar dados da FIPE" mais tarde para completar.`);
-      throw e;
-    }
+    const msgs = [];
+    if(paidFail) msgs.push(`${paidFail} ${paidFail===1?'mês mais antigo não veio':'meses mais antigos não vieram'}: a API gratuita da FIPE (Parallelum) passou a liberar só os meses recentes, e a fonte reserva (BrasilAPI) não respondeu (${lastPaidFail.detail}). O app tenta de novo em alguns dias; os meses já baixados ficam salvos.`);
+    if(transient) msgs.push(`${transient} ${transient===1?'mês não veio':'meses não vieram'} porque a API da FIPE não respondeu (${lastTransient.detail}). Toque em "Atualizar dados da FIPE" mais tarde para completar.`);
+    if(msgs.length) throw fipeErr('partial', msgs.join(' '));
   })().then(()=>{ delete FIPE.errors[key]; })
     .catch(e=>{ FIPE.errors[key] = fipeErrMsg(e); })
     .finally(()=>{ delete FIPE.loading[key]; renderFipeSoon(); });
@@ -3085,6 +3177,13 @@ async function fipeTestConn(){
     try{ const d = fipeArr(await fipeGetFrom(base, '/cars/brands'+ref)); out.push(`${host}: ok (${d.length} marcas)`); }
     catch(e){ out.push(`${host}: ${e.detail||e.message}`); }
   }
+  try{
+    const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
+    const res = await fetch(BRASILAPI_FIPE+'/tabelas/v1', {signal:ctl.signal}).finally(()=>clearTimeout(t));
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d = await res.json();
+    out.push(`brasilapi.com.br (histórico): ok (${Array.isArray(d)?d.length:0} meses)`);
+  }catch(e){ out.push(`brasilapi.com.br (histórico): ${e.name==='AbortError'?'demorou demais':(e.message||'falhou')}`); }
   sub.textContent = out.join(' · ');
 }
 
