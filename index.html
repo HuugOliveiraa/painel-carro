@@ -1063,15 +1063,13 @@ function buildCategoryBreakdownHTML(car, from, to){
   const total = items.reduce((s,x)=>s+x.value, 0);
   if(total<=0) return `<div class="empty-reminders">Nenhum gasto registrado${from?' no período':' ainda'}.</div>`;
   const pct = v=>(v/total*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
-  const groups = ['fuel','maint','exp'].map(g=>({g, label:{fuel:'Combustível',maint:'Manutenção',exp:'Despesas'}[g], value:items.filter(x=>x.group===g).reduce((s,x)=>s+x.value,0), color:CAT_COLORS[g][0]})).filter(x=>x.value>0);
   const bar = items.map(s=>`<span style="width:${(s.value/total*100).toFixed(2)}%; background:${s.color}" title="${escapeHtml(s.label)}"></span>`).join('');
-  const sumLine = groups.map(g=>`<div class="item"><span class="dot" style="background:${g.color}"></span><b style="color:var(--text)">${g.label}</b>&nbsp;${fmtMoney(g.value)} (${pct(g.value)})</div>`).join('');
   const max = Math.max(...items.map(x=>x.value));
   const rows = items.slice().sort((a,b)=>b.value-a.value).map(s=>`<div class="cat-row">
       <span class="dot" style="background:${s.color}"></span>
       <div class="nm"><div class="t">${escapeHtml(s.label)} <span class="g">${s.groupLabel}</span></div><div class="mb"><span style="width:${(s.value/max*100).toFixed(1)}%; background:${s.color}"></span></div></div>
       <div class="v">${fmtMoney(s.value)}<span>${pct(s.value)}</span></div></div>`).join('');
-  return `<div class="cat-bar">${bar}</div><div class="cat-legend" style="margin-bottom:10px">${sumLine}</div><div class="cat-rows">${rows}</div>`;
+  return `<div class="cat-bar">${bar}</div><div class="cat-rows">${rows}</div>`;
 }
 function renderCategoryBreakdown(car){
   const el = document.getElementById('categoryBreakdown');
